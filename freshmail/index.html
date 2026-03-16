@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiotis Portal</title>
+<style>
+body{
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
+background:#0f172a;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+.container{
+text-align:center;
+max-width:900px;
+width:100%;
+padding:20px;
+}
+h1{
+margin-bottom:30px;
+font-size:28px;
+}
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+}
+.card{
+background:#1e293b;
+border-radius:18px;
+padding:30px 20px;
+text-decoration:none;
+color:white;
+transition:0.2s;
+border:1px solid rgba(255,255,255,0.08);
+}
+.card:hover{
+transform:translateY(-5px);
+background:#334155;
+}
+.card.freshmail{
+border:1px solid rgba(242,196,206,0.25);
+background:#1a2050;
+}
+.card.freshmail:hover{
+background:#1F2D6E;
+border-color:rgba(242,196,206,0.5);
+}
+.icon{
+font-size:42px;
+margin-bottom:10px;
+}
+.fm-icon{
+font-size:36px;
+margin-bottom:10px;
+background: linear-gradient(135deg, #1F2D6E, #2d3f9e);
+border-radius: 14px;
+width: 64px;
+height: 64px;
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 0 auto 12px;
+border: 2px solid rgba(242,196,206,0.3);
+}
+.title{
+font-size:18px;
+font-weight:600;
+}
+.subtitle{
+font-size:13px;
+opacity:0.7;
+margin-top:6px;
+}
+.fm-title{
+font-size:18px;
+font-weight:700;
+color:#F2C4CE;
+}
+.fm-subtitle{
+font-size:13px;
+color:rgba(242,196,206,0.6);
+margin-top:6px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔒 Axiotis Private Portal</h1>
+  <div class="grid">
+
+    <a class="card" href="https://apex-pay-flow.base44.app" target="_blank">
+      <div class="icon">🚀</div>
+      <div class="title">Apex Pay Flow</div>
+      <div class="subtitle">Base44 ERP App</div>
+    </a>
+
+    <a class="card" href="https://app.powerbi.com/links/lKhbn6IHQW?ctid=8399bb00-746a-4d00-88be-6a6446e50b27&pbi_source=linkShare&bookmarkGuid=e07b19ac-b51c-4906-9cab-5040581ff57d" target="_blank">
+      <div class="icon">📊</div>
+      <div class="title">BI Dashboard</div>
+      <div class="subtitle">Power BI Reports</div>
+    </a>
+
+    <a class="card freshmail" href="giris.html">
+      <div class="fm-icon">☕</div>
+      <div class="fm-title">Orders</div>
+      <div class="fm-subtitle">Παραγγελίες · Stock · Παραγωγή</div>
+    </a>
+
+  </div>
+</div>
+<script>
+const PASSWORD = "8888";
+function askPassword() {
+  const userPass = prompt("Εισάγετε κωδικό πρόσβασης:");
+  if (userPass === PASSWORD) {
+    return;
+  } else {
+    alert("Λάθος κωδικός.");
+    askPassword();
+  }
+}
+askPassword();
+</script>
+</body>
+</html>

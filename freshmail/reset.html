@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fresh Mail — Νέος Κωδικός</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--navy:#1F2D6E;--pink:#F2C4CE;--white:#FFFFFF;--navy2:#162058;--grey:#f7f4f6;--err:#c0392b;--green:#27ae60}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;background:var(--navy);display:flex;align-items:center;justify-content:center;font-family:'Barlow',sans-serif}
+    .card{background:var(--white);border-radius:20px;width:420px;max-width:95vw;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.35)}
+    .card-header{background:var(--navy);padding:36px 40px 28px;text-align:center;position:relative}
+    .card-header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:20px;background:var(--white);border-radius:20px 20px 0 0}
+    .logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:42px;letter-spacing:2px;color:var(--pink);text-transform:uppercase;line-height:1}
+    .logo-sub{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:4px;color:rgba(242,196,206,0.6);text-transform:uppercase;margin-top:4px}
+    .erp-badge{display:inline-block;margin-top:14px;background:rgba(242,196,206,0.15);border:1px solid rgba(242,196,206,0.3);color:var(--pink);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:11px;letter-spacing:3px;text-transform:uppercase;padding:5px 14px;border-radius:20px}
+    .card-body{padding:32px 40px 40px}
+    .form-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--navy);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase}
+    .form-sub{font-size:13px;color:#888;margin-bottom:24px}
+    .field{margin-bottom:18px}
+    .field label{display:block;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:8px;opacity:0.7}
+    .field input{width:100%;padding:13px 16px;border:2px solid #e8e4e8;border-radius:10px;font-family:'Barlow',sans-serif;font-size:15px;color:var(--navy);background:var(--grey);outline:none;transition:border-color 0.2s}
+    .field input:focus{border-color:var(--navy);background:var(--white)}
+    .msg{display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:18px}
+    .msg.error{background:#fdf0ef;border:1px solid #f5c6c2;color:var(--err)}
+    .msg.success{background:#eafaf1;border:1px solid #a9dfbf;color:var(--green)}
+    .msg.show{display:block}
+    .btn-save{width:100%;padding:15px;background:var(--navy);color:var(--pink);border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:3px;text-transform:uppercase;cursor:pointer}
+    .btn-save:hover{background:var(--navy2)}
+    .btn-save:disabled{opacity:0.5;pointer-events:none}
+    .card-footer{text-align:center;padding:0 40px 28px;font-size:11px;color:#bbb}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <div class="logo-text">Fresh Mail</div>
+      <div class="logo-sub">Coffee Roasters</div>
+      <div class="erp-badge">ERP System</div>
+    </div>
+    <div class="card-body">
+      <div class="form-title">Νέος Κωδικός</div>
+      <div class="form-sub">Βάλε τον νέο σου κωδικό πρόσβασης</div>
+      <div class="msg" id="msgBox"></div>
+      <div class="field">
+        <label>Νέος Κωδικός</label>
+        <input type="password" id="newPass" placeholder="Τουλάχιστον 6 χαρακτήρες"/>
+      </div>
+      <div class="field">
+        <label>Επιβεβαίωση Κωδικού</label>
+        <input type="password" id="confirmPass" placeholder="Ίδιος κωδικός ξανά"/>
+      </div>
+      <button class="btn-save" id="btnSave" onclick="doReset()">ΑΠΟΘΗΚΕΥΣΗ</button>
+    </div>
+    <div class="card-footer">© 2026 Fresh Mail Coffee Roasters</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    var FM_URL = 'https://slkgziugmtisawxeycmv.supabase.co';
+    var FM_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsa2d6aXVnbXRpc2F3eGV5Y212Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDUxNTUsImV4cCI6MjA4ODI4MTE1NX0.LVfCr7iF4ypR5vDsUzCZ32iKfbk0CVVS6fKWDBCH62k';
+    var fmDb = window.supabase.createClient(FM_URL, FM_KEY);
+
+    // Διάβασε το token από το URL (μπορεί να είναι #access_token=... ή ?token=...)
+    function getTokenFromUrl() {
+      var hash = window.location.hash.substring(1);
+      var params = {};
+      hash.split('&').forEach(function(part) {
+        var pair = part.split('=');
+        if (pair.length === 2) params[pair[0]] = decodeURIComponent(pair[1]);
+      });
+      // Επίσης έλεγξε query params
+      var search = window.location.search.substring(1);
+      search.split('&').forEach(function(part) {
+        var pair = part.split('=');
+        if (pair.length === 2) params[pair[0]] = decodeURIComponent(pair[1]);
+      });
+      return params;
+    }
+
+    // Αρχικοποίηση — διάβασε το token και κάνε setSession
+    (async function() {
+      var params = getTokenFromUrl();
+      
+      if (params['access_token'] && params['refresh_token']) {
+        // Supabase v2 στέλνει access_token και refresh_token στο hash
+        var r = await fmDb.auth.setSession({
+          access_token: params['access_token'],
+          refresh_token: params['refresh_token']
+        });
+        if (r.error) {
+          showMsg('❌ Το link έχει λήξει. Ζήτησε νέο reset.', 'error');
+          document.getElementById('btnSave').disabled = true;
+        }
+      } else if (params['token_hash'] || params['token']) {
+        // Νέο format PKCE
+        var token = params['token_hash'] || params['token'];
+        var r = await fmDb.auth.verifyOtp({
+          token_hash: token,
+          type: 'recovery'
+        });
+        if (r.error) {
+          showMsg('❌ Το link έχει λήξει. Ζήτησε νέο reset.', 'error');
+          document.getElementById('btnSave').disabled = true;
+        }
+      } else {
+        // Έλεγξε αν έχει ήδη session
+        var s = await fmDb.auth.getSession();
+        if (!s.data || !s.data.session) {
+          showMsg('❌ Άκυρο link. Ζήτησε νέο reset password.', 'error');
+          document.getElementById('btnSave').disabled = true;
+        }
+      }
+    })();
+
+    function showMsg(text, type) {
+      var el = document.getElementById('msgBox');
+      el.textContent = text;
+      el.className = 'msg ' + type + ' show';
+    }
+
+    async function doReset() {
+      var pass    = document.getElementById('newPass').value;
+      var confirm = document.getElementById('confirmPass').value;
+
+      if (!pass || pass.length < 6) {
+        showMsg('❌ Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.', 'error');
+        return;
+      }
+      if (pass !== confirm) {
+        showMsg('❌ Οι κωδικοί δεν ταιριάζουν.', 'error');
+        return;
+      }
+
+      document.getElementById('btnSave').disabled = true;
+      var r = await fmDb.auth.updateUser({ password: pass });
+
+      if (r.error) {
+        showMsg('❌ ' + r.error.message, 'error');
+        document.getElementById('btnSave').disabled = false;
+      } else {
+        showMsg('✅ Ο κωδικός άλλαξε! Μεταφορά στο login...', 'success');
+        setTimeout(function(){ location.href = 'giris.html'; }, 2000);
+      }
+    }
+
+    document.getElementById('confirmPass').addEventListener('keydown', function(e){
+      if (e.key === 'Enter') doReset();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fresh Mail — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --navy:#1F2D6E; --pink:#F2C4CE; --white:#FFFFFF; --grey:#f4f2f4; --border:#e8e4e8; --green:#27ae60; --red:#e74c3c; --orange:#f39c12; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Barlow',sans-serif;background:var(--grey);color:#222;min-height:100vh}
+
+    /* ── Header ── */
+    .header{background:var(--navy);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2)}
+    .header-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--pink);letter-spacing:2px}
+    .header-right{display:flex;align-items:center;gap:16px}
+    .header-user{font-size:13px;color:rgba(242,196,206,0.7)}
+    .btn-logout{background:rgba(242,196,206,0.15);border:1px solid rgba(242,196,206,0.3);color:var(--pink);padding:6px 14px;border-radius:6px;font-size:12px;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:1px;cursor:pointer;transition:background 0.2s}
+    .btn-logout:hover{background:rgba(242,196,206,0.25)}
+
+    /* ── Layout ── */
+    .layout{display:flex;min-height:calc(100vh - 60px)}
+
+    /* ── Sidebar ── */
+    .sidebar{width:220px;background:var(--white);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:3px;color:#999;text-transform:uppercase;padding:0 20px 10px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:14px;font-weight:500;color:#555;transition:all 0.15s;border-left:3px solid transparent}
+    .nav-item:hover{background:#f8f6f8;color:var(--navy)}
+    .nav-item.active{background:#f0edf8;color:var(--navy);border-left-color:var(--navy);font-weight:600}
+    .nav-icon{font-size:18px;width:24px;text-align:center}
+
+    /* ── Main ── */
+    .main{flex:1;padding:28px;overflow-x:auto}
+    .page-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:26px;color:var(--navy);letter-spacing:1px;margin-bottom:6px}
+    .page-sub{font-size:13px;color:#888;margin-bottom:24px}
+
+    /* ── Cards ── */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px}
+    .stat-card{background:var(--white);border-radius:12px;padding:20px;border:1px solid var(--border);text-align:center}
+    .stat-number{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--navy)}
+    .stat-label{font-size:12px;color:#888;margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+
+    /* ── Table card ── */
+    .card{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:24px}
+    .card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-head-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--navy);letter-spacing:1px}
+    .btn-add{background:var(--navy);color:var(--pink);border:none;padding:8px 16px;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;transition:background 0.2s}
+    .btn-add:hover{background:#162058}
+
+    table{width:100%;border-collapse:collapse}
+    th{background:#f8f6f8;padding:10px 16px;text-align:left;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#888;border-bottom:1px solid var(--border)}
+    td{padding:12px 16px;border-bottom:1px solid #f5f3f5;font-size:14px;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#fdfcfd}
+
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px}
+    .badge-green{background:#e8f8ef;color:var(--green)}
+    .badge-red{background:#fdf0ef;color:var(--red)}
+    .badge-navy{background:#eef0f8;color:var(--navy)}
+    .badge-orange{background:#fef8e7;color:var(--orange)}
+
+    .btn-sm{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all 0.15s}
+    .btn-edit{background:#eef0f8;color:var(--navy)}
+    .btn-edit:hover{background:#dde1f0}
+    .btn-del{background:#fdf0ef;color:var(--red)}
+    .btn-del:hover{background:#fae0de}
+
+    /* ── Modal ── */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center}
+    .modal-overlay.show{display:flex}
+    .modal{background:var(--white);border-radius:16px;width:460px;max-width:95vw;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+    .modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--navy);margin-bottom:20px}
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:6px;opacity:0.7}
+    .form-group input,.form-group select{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-family:'Barlow',sans-serif;font-size:14px;color:#222;outline:none;transition:border-color 0.2s}
+    .form-group input:focus,.form-group select:focus{border-color:var(--navy)}
+    .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+    .btn-cancel{background:var(--grey);color:#555;border:none;padding:10px 20px;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:1px;cursor:pointer}
+    .btn-save{background:var(--navy);color:var(--pink);border:none;padding:10px 20px;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;cursor:pointer}
+
+    .loading{text-align:center;padding:40px;color:#aaa;font-size:14px}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">☕ Fresh Mail ERP</div>
+  <div class="header-right">
+    <div class="header-user" id="headerUser"></div>
+    <button class="btn-logout" onclick="fmLogout()">ΕΞΟΔΟΣ</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-title">Διαχείριση</div>
+    <div class="nav-item active" onclick="showTab('products')" id="nav-products">
+      <span class="nav-icon">🛍️</span> Προϊόντα
+    </div>
+    <div class="nav-item" onclick="showTab('stores')" id="nav-stores">
+      <span class="nav-icon">🏪</span> Καταστήματα
+    </div>
+    <div class="nav-item" onclick="showTab('users')" id="nav-users">
+      <span class="nav-icon">👥</span> Χρήστες
+    </div>
+    <div class="nav-item" onclick="showTab('stock')" id="nav-stock">
+      <span class="nav-icon">📦</span> Stock
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-number" id="statProducts">-</div>
+        <div class="stat-label">Προϊόντα</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statStores">-</div>
+        <div class="stat-label">Καταστήματα</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statUsers">-</div>
+        <div class="stat-label">Χρήστες</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statSales">-</div>
+        <div class="stat-label">Πωλήσεις</div>
+      </div>
+    </div>
+
+    <!-- Products Tab -->
+    <div id="tab-products">
+      <div class="page-title">Προϊόντα</div>
+      <div class="page-sub">Διαχείριση καταλόγου προϊόντων ERP</div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-title">ΚΑΤΑΛΟΓΟΣ ΠΡΟΪΟΝΤΩΝ</div>
+          <button class="btn-add" onclick="openProductModal()">+ Νέο Προϊόν</button>
+        </div>
+        <div id="productsTable"><div class="loading">Φόρτωση...</div></div>
+      </div>
+    </div>
+
+    <!-- Stores Tab -->
+    <div id="tab-stores" class="hidden">
+      <div class="page-title">Καταστήματα</div>
+      <div class="page-sub">Διαχείριση καταστημάτων</div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-title">ΚΑΤΑΣΤΗΜΑΤΑ</div>
+          <button class="btn-add" onclick="openStoreModal()">+ Νέο Κατάστημα</button>
+        </div>
+        <div id="storesTable"><div class="loading">Φόρτωση...</div></div>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="tab-users" class="hidden">
+      <div class="page-title">Χρήστες</div>
+      <div class="page-sub">Διαχείριση χρηστών και ρόλων</div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-title">ΧΡΗΣΤΕΣ ΣΥΣΤΗΜΑΤΟΣ</div>
+        </div>
+        <div id="usersTable"><div class="loading">Φόρτωση...</div></div>
+      </div>
+    </div>
+
+    <!-- Stock Tab -->
+    <div id="tab-stock" class="hidden">
+      <div class="page-title">Stock</div>
+      <div class="page-sub">Παρτίδες αποθέματος ανά κατάστημα</div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-title">ΠΑΡΤΙΔΕΣ ΑΠΟΘΕΜΑΤΟΣ</div>
+          <button class="btn-add" onclick="openStockModal()">+ Νέα Παρτίδα</button>
+        </div>
+        <div id="stockTable"><div class="loading">Φόρτωση...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-title" id="productModalTitle">Νέο Προϊόν</div>
+    <input type="hidden" id="productId"/>
+    <div class="form-group">
+      <label>Όνομα</label>
+      <input type="text" id="productName" placeholder="π.χ. Smoky Sandwich"/>
+    </div>
+    <div class="form-group">
+      <label>Κωδικός POS</label>
+      <input type="text" id="productCode" placeholder="π.χ. SAND-0001"/>
+    </div>
+    <div class="form-group">
+      <label>Κατηγορία</label>
+      <select id="productCategory">
+        <option value="SANDWICH">SANDWICH</option>
+        <option value="WRAP">WRAP</option>
+        <option value="TOAST">TOAST</option>
+        <option value="COOKIE">COOKIE</option>
+        <option value="CAKE">CAKE</option>
+        <option value="MUFFIN">MUFFIN</option>
+        <option value="OTHER">OTHER</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Ημέρες Ζωής</label>
+      <input type="number" id="productDays" placeholder="π.χ. 3" min="1"/>
+    </div>
+    <div class="form-group">
+      <label>Κατάσταση</label>
+      <select id="productActive">
+        <option value="true">Ενεργό</option>
+        <option value="false">Ανενεργό</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('productModal')">Άκυρο</button>
+      <button class="btn-save" onclick="saveProduct()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<!-- Store Modal -->
+<div class="modal-overlay" id="storeModal">
+  <div class="modal">
+    <div class="modal-title" id="storeModalTitle">Νέο Κατάστημα</div>
+    <input type="hidden" id="storeId"/>
+    <div class="form-group">
+      <label>Όνομα</label>
+      <input type="text" id="storeName" placeholder="π.χ. Παγκράτι"/>
+    </div>
+    <div class="form-group">
+      <label>Κωδικός</label>
+      <input type="text" id="storeCode" placeholder="π.χ. STR-001"/>
+    </div>
+    <div class="form-group">
+      <label>Κατάσταση</label>
+      <select id="storeActive">
+        <option value="true">Ενεργό</option>
+        <option value="false">Ανενεργό</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('storeModal')">Άκυρο</button>
+      <button class="btn-save" onclick="saveStore()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Modal -->
+<div class="modal-overlay" id="stockModal">
+  <div class="modal">
+    <div class="modal-title">Νέα Παρτίδα Stock</div>
+    <div class="form-group">
+      <label>Κατάστημα</label>
+      <select id="stockStore"></select>
+    </div>
+    <div class="form-group">
+      <label>Προϊόν</label>
+      <select id="stockProduct"></select>
+    </div>
+    <div class="form-group">
+      <label>Ημερομηνία Παραλαβής</label>
+      <input type="date" id="stockReceived"/>
+    </div>
+    <div class="form-group">
+      <label>Ημερομηνία Λήξης</label>
+      <input type="date" id="stockExpiry"/>
+    </div>
+    <div class="form-group">
+      <label>Ποσότητα</label>
+      <input type="number" id="stockQty" min="1"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('stockModal')">Άκυρο</button>
+      <button class="btn-save" onclick="saveStock()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  var FM_URL = 'https://slkgziugmtisawxeycmv.supabase.co';
+  var FM_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsa2d6aXVnbXRpc2F3eGV5Y212Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDUxNTUsImV4cCI6MjA4ODI4MTE1NX0.LVfCr7iF4ypR5vDsUzCZ32iKfbk0CVVS6fKWDBCH62k';
+  var fmDb = window.supabase.createClient(FM_URL, FM_KEY);
+  var allProducts = [], allStores = [];
+
+  // ── Auth check ──────────────────────────────────────────
+  (async function() {
+    var s = await fmDb.auth.getSession();
+    if (!s.data || !s.data.session) { location.href = 'giris.html'; return; }
+    var u = await fmDb.from('χρήστες').select('ρόλος,όνομα').eq('auth_user_id', s.data.session.user.id).single();
+    if (!u.data || u.data['ρόλος'] !== 'admin') { location.href = 'giris.html'; return; }
+    document.getElementById('headerUser').textContent = u.data['όνομα'] || s.data.session.user.email;
+    loadStats();
+    loadProducts();
+  })();
+
+  async function fmLogout() {
+    await fmDb.auth.signOut();
+    location.href = 'giris.html';
+  }
+
+  // ── Tabs ────────────────────────────────────────────────
+  function showTab(tab) {
+    ['products','stores','users','stock'].forEach(function(t) {
+      document.getElementById('tab-'+t).classList.add('hidden');
+      document.getElementById('nav-'+t).classList.remove('active');
+    });
+    document.getElementById('tab-'+tab).classList.remove('hidden');
+    document.getElementById('nav-'+tab).classList.add('active');
+    if (tab==='products') loadProducts();
+    if (tab==='stores')   loadStores();
+    if (tab==='users')    loadUsers();
+    if (tab==='stock')    loadStock();
+  }
+
+  // ── Stats ────────────────────────────────────────────────
+  async function loadStats() {
+    var p = await fmDb.from('προϊόντα').select('id', {count:'exact',head:true});
+    var s = await fmDb.from('καταστήματα').select('id', {count:'exact',head:true});
+    var u = await fmDb.from('χρήστες').select('id', {count:'exact',head:true});
+    var v = await fmDb.from('πωλήσεις').select('id', {count:'exact',head:true});
+    document.getElementById('statProducts').textContent = p.count || 0;
+    document.getElementById('statStores').textContent   = s.count || 0;
+    document.getElementById('statUsers').textContent    = u.count || 0;
+    document.getElementById('statSales').textContent    = v.count || 0;
+  }
+
+  // ── Products ─────────────────────────────────────────────
+  async function loadProducts() {
+    var r = await fmDb.from('προϊόντα').select('*').order('κατηγορία').order('όνομα');
+    allProducts = r.data || [];
+    var html = '<table><thead><tr><th>Όνομα</th><th>Κωδικός</th><th>Κατηγορία</th><th>Ημ. Ζωής</th><th>Κατάσταση</th><th></th></tr></thead><tbody>';
+    allProducts.forEach(function(p) {
+      html += '<tr>';
+      html += '<td><strong>'+p['όνομα']+'</strong></td>';
+      html += '<td><code>'+p['κωδικός']+'</code></td>';
+      html += '<td><span class="badge badge-navy">'+p['κατηγορία']+'</span></td>';
+      html += '<td>'+p['ημέρες_ζωής']+' μέρες</td>';
+      html += '<td><span class="badge '+(p['ενεργό']?'badge-green':'badge-red')+'">'+(p['ενεργό']?'Ενεργό':'Ανενεργό')+'</span></td>';
+      html += '<td><button class="btn-sm btn-edit" onclick="editProduct('+p.id+')">✏️</button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('productsTable').innerHTML = html;
+  }
+
+  function openProductModal(p) {
+    document.getElementById('productId').value = '';
+    document.getElementById('productName').value = '';
+    document.getElementById('productCode').value = '';
+    document.getElementById('productDays').value = '';
+    document.getElementById('productActive').value = 'true';
+    document.getElementById('productModalTitle').textContent = 'Νέο Προϊόν';
+    document.getElementById('productModal').classList.add('show');
+  }
+
+  function editProduct(id) {
+    var p = allProducts.find(function(x){return x.id===id});
+    if (!p) return;
+    document.getElementById('productId').value = p.id;
+    document.getElementById('productName').value = p['όνομα'];
+    document.getElementById('productCode').value = p['κωδικός'];
+    document.getElementById('productCategory').value = p['κατηγορία'];
+    document.getElementById('productDays').value = p['ημέρες_ζωής'];
+    document.getElementById('productActive').value = String(p['ενεργό']);
+    document.getElementById('productModalTitle').textContent = 'Επεξεργασία Προϊόντος';
+    document.getElementById('productModal').classList.add('show');
+  }
+
+  async function saveProduct() {
+    var id   = document.getElementById('productId').value;
+    var data = {
+      'όνομα':        document.getElementById('productName').value,
+      'κωδικός':      document.getElementById('productCode').value,
+      'κατηγορία':    document.getElementById('productCategory').value,
+      'ημέρες_ζωής':  parseInt(document.getElementById('productDays').value),
+      'ενεργό':       document.getElementById('productActive').value === 'true'
+    };
+    if (id) {
+      await fmDb.from('προϊόντα').update(data).eq('id', parseInt(id));
+    } else {
+      await fmDb.from('προϊόντα').insert(data);
+    }
+    closeModal('productModal');
+    loadProducts();
+    loadStats();
+  }
+
+  // ── Stores ────────────────────────────────────────────────
+  async function loadStores() {
+    var r = await fmDb.from('καταστήματα').select('*').order('όνομα');
+    allStores = r.data || [];
+    var html = '<table><thead><tr><th>Όνομα</th><th>Κωδικός</th><th>Κατάσταση</th><th></th></tr></thead><tbody>';
+    allStores.forEach(function(s) {
+      html += '<tr>';
+      html += '<td><strong>'+s['όνομα']+'</strong></td>';
+      html += '<td><code>'+s['κωδικός']+'</code></td>';
+      html += '<td><span class="badge '+(s['ενεργό']?'badge-green':'badge-red')+'">'+(s['ενεργό']?'Ενεργό':'Ανενεργό')+'</span></td>';
+      html += '<td><button class="btn-sm btn-edit" onclick="editStore('+s.id+')">✏️</button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('storesTable').innerHTML = html;
+  }
+
+  function openStoreModal() {
+    document.getElementById('storeId').value = '';
+    document.getElementById('storeName').value = '';
+    document.getElementById('storeCode').value = '';
+    document.getElementById('storeActive').value = 'true';
+    document.getElementById('storeModalTitle').textContent = 'Νέο Κατάστημα';
+    document.getElementById('storeModal').classList.add('show');
+  }
+
+  function editStore(id) {
+    var s = allStores.find(function(x){return x.id===id});
+    if (!s) return;
+    document.getElementById('storeId').value = s.id;
+    document.getElementById('storeName').value = s['όνομα'];
+    document.getElementById('storeCode').value = s['κωδικός'];
+    document.getElementById('storeActive').value = String(s['ενεργό']);
+    document.getElementById('storeModalTitle').textContent = 'Επεξεργασία Καταστήματος';
+    document.getElementById('storeModal').classList.add('show');
+  }
+
+  async function saveStore() {
+    var id   = document.getElementById('storeId').value;
+    var data = {
+      'όνομα':   document.getElementById('storeName').value,
+      'κωδικός': document.getElementById('storeCode').value,
+      'ενεργό':  document.getElementById('storeActive').value === 'true',
+      'εταιρία_id': 1
+    };
+    if (id) {
+      await fmDb.from('καταστήματα').update(data).eq('id', parseInt(id));
+    } else {
+      await fmDb.from('καταστήματα').insert(data);
+    }
+    closeModal('storeModal');
+    loadStores();
+    loadStats();
+  }
+
+  // ── Users ─────────────────────────────────────────────────
+  async function loadUsers() {
+    var r = await fmDb.from('χρήστες').select('*, καταστήματα(όνομα)').order('όνομα');
+    var html = '<table><thead><tr><th>Όνομα</th><th>Email</th><th>Ρόλος</th><th>Κατάστημα</th><th>Κατάσταση</th></tr></thead><tbody>';
+    (r.data||[]).forEach(function(u) {
+      var roleColors = {admin:'badge-navy', kitchen:'badge-orange', store:'badge-green'};
+      html += '<tr>';
+      html += '<td><strong>'+u['όνομα']+'</strong></td>';
+      html += '<td>'+u['email']+'</td>';
+      html += '<td><span class="badge '+(roleColors[u['ρόλος']]||'badge-navy')+'">'+u['ρόλος'].toUpperCase()+'</span></td>';
+      html += '<td>'+(u['καταστήματα']?u['καταστήματα']['όνομα']:'-')+'</td>';
+      html += '<td><span class="badge '+(u['ενεργός']?'badge-green':'badge-red')+'">'+(u['ενεργός']?'Ενεργός':'Ανενεργός')+'</span></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('usersTable').innerHTML = html;
+  }
+
+  // ── Stock ─────────────────────────────────────────────────
+  async function loadStock() {
+    var r = await fmDb.from('παρτιδες_αποθέματος').select('*, προϊόντα(όνομα), καταστήματα(όνομα)').order('ημερομηνία_λήξης');
+    var html = '<table><thead><tr><th>Κατάστημα</th><th>Προϊόν</th><th>Παραλαβή</th><th>Λήξη</th><th>Ποσότητα</th><th>Υπόλοιπο</th><th>Κατάσταση</th></tr></thead><tbody>';
+    var data = r.data || [];
+    if (data.length === 0) {
+      html += '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px">Δεν υπάρχουν παρτίδες ακόμα</td></tr>';
+    } else {
+      var today = new Date().toISOString().split('T')[0];
+      data.forEach(function(s) {
+        var isExpired = s['ημερομηνία_λήξης'] <= today;
+        var isLow = s['υπόλοιπο'] <= 2;
+        html += '<tr>';
+        html += '<td>'+s['καταστήματα']['όνομα']+'</td>';
+        html += '<td><strong>'+s['προϊόντα']['όνομα']+'</strong></td>';
+        html += '<td>'+s['ημερομηνία_παραλαβής']+'</td>';
+        html += '<td><span class="badge '+(isExpired?'badge-red':'badge-green')+'">'+s['ημερομηνία_λήξης']+'</span></td>';
+        html += '<td>'+s['ποσότητα']+'</td>';
+        html += '<td><strong>'+s['υπόλοιπο']+'</strong></td>';
+        html += '<td><span class="badge '+(isExpired?'badge-red':isLow?'badge-orange':'badge-green')+'">'+(isExpired?'Ληγμένο':isLow?'Χαμηλό':'OK')+'</span></td>';
+        html += '</tr>';
+      });
+    }
+    html += '</tbody></table>';
+    document.getElementById('stockTable').innerHTML = html;
+  }
+
+  async function openStockModal() {
+    if (allStores.length===0) { var r = await fmDb.from('καταστήματα').select('*'); allStores = r.data||[]; }
+    if (allProducts.length===0) { var r = await fmDb.from('προϊόντα').select('*').eq('ενεργό',true); allProducts = r.data||[]; }
+    var storeOpts = allStores.map(function(s){return '<option value="'+s.id+'">'+s['όνομα']+'</option>'}).join('');
+    var prodOpts  = allProducts.map(function(p){return '<option value="'+p.id+'">'+p['όνομα']+'</option>'}).join('');
+    document.getElementById('stockStore').innerHTML   = storeOpts;
+    document.getElementById('stockProduct').innerHTML = prodOpts;
+    document.getElementById('stockReceived').value = new Date().toISOString().split('T')[0];
+    document.getElementById('stockExpiry').value = '';
+    document.getElementById('stockQty').value = '';
+    document.getElementById('stockModal').classList.add('show');
+  }
+
+  async function saveStock() {
+    var qty = parseInt(document.getElementById('stockQty').value);
+    var data = {
+      'κατάστημα_id':       parseInt(document.getElementById('stockStore').value),
+      'προϊόν_id':          parseInt(document.getElementById('stockProduct').value),
+      'ημερομηνία_παραλαβής': document.getElementById('stockReceived').value,
+      'ημερομηνία_λήξης':   document.getElementById('stockExpiry').value,
+      'ποσότητα':           qty,
+      'υπόλοιπο':           qty
+    };
+    await fmDb.from('παρτιδες_αποθέματος').insert(data);
+    closeModal('stockModal');
+    loadStock();
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  // Close modal on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      if (e.target === el) el.classList.remove('show');
+    });
+  });
+</script>
+</body>
+</html>
