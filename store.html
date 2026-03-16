@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fresh Mail — Κατάστημα</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--navy:#1F2D6E;--pink:#F2C4CE;--white:#FFFFFF;--grey:#f4f2f4;--border:#e8e4e8;--green:#27ae60;--red:#e74c3c;--orange:#f39c12}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Barlow',sans-serif;background:var(--grey);color:#222;min-height:100vh}
+
+    .header{background:var(--navy);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2)}
+    .header-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--pink);letter-spacing:2px}
+    .header-store{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:16px;color:rgba(242,196,206,0.8);letter-spacing:1px}
+    .header-right{display:flex;align-items:center;gap:16px}
+    .header-user{font-size:13px;color:rgba(242,196,206,0.7)}
+    .btn-logout{background:rgba(242,196,206,0.15);border:1px solid rgba(242,196,206,0.3);color:var(--pink);padding:6px 14px;border-radius:6px;font-size:12px;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:1px;cursor:pointer}
+    .btn-logout:hover{background:rgba(242,196,206,0.25)}
+
+    .layout{display:flex;min-height:calc(100vh - 60px)}
+
+    .sidebar{width:220px;background:var(--white);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:3px;color:#999;text-transform:uppercase;padding:0 20px 10px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:14px;font-weight:500;color:#555;transition:all 0.15s;border-left:3px solid transparent}
+    .nav-item:hover{background:#f8f6f8;color:var(--navy)}
+    .nav-item.active{background:#f0edf8;color:var(--navy);border-left-color:var(--navy);font-weight:600}
+    .nav-icon{font-size:18px;width:24px;text-align:center}
+
+    .main{flex:1;padding:28px;overflow-x:auto}
+    .page-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:26px;color:var(--navy);letter-spacing:1px;margin-bottom:6px}
+    .page-sub{font-size:13px;color:#888;margin-bottom:24px}
+
+    /* Order page */
+    .cutoff-banner{background:linear-gradient(135deg,var(--navy),#2d3f9e);color:var(--pink);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+    .cutoff-text{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:1px}
+    .cutoff-time{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;color:var(--white)}
+
+    .category-section{margin-bottom:24px}
+    .category-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:3px;text-transform:uppercase;color:#888;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)}
+
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+    .product-card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:16px;display:flex;align-items:center;justify-content:space-between;transition:box-shadow 0.15s}
+    .product-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+    .product-info{flex:1}
+    .product-name{font-weight:600;font-size:14px;color:#222;margin-bottom:4px}
+    .product-meta{font-size:12px;color:#888}
+    .product-suggested{font-size:11px;color:var(--navy);font-weight:600;margin-top:4px}
+
+    .qty-control{display:flex;align-items:center;gap:8px}
+    .qty-btn{width:32px;height:32px;border-radius:8px;border:2px solid var(--navy);background:var(--white);color:var(--navy);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;line-height:1}
+    .qty-btn:hover{background:var(--navy);color:var(--pink)}
+    .qty-input{width:48px;text-align:center;border:2px solid var(--border);border-radius:8px;padding:6px 4px;font-family:'Barlow',sans-serif;font-size:16px;font-weight:700;color:var(--navy);outline:none}
+    .qty-input:focus{border-color:var(--navy)}
+
+    .order-footer{position:sticky;bottom:0;background:var(--white);border-top:2px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.08)}
+    .order-summary{font-size:14px;color:#555}
+    .order-summary strong{color:var(--navy);font-size:18px}
+    .btn-submit{background:var(--navy);color:var(--pink);border:none;padding:14px 32px;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:2px;cursor:pointer;transition:background 0.2s}
+    .btn-submit:hover{background:#162058}
+    .btn-submit:disabled{opacity:0.5;pointer-events:none}
+
+    /* Stock page */
+    .card{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px}
+    .card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-head-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--navy);letter-spacing:1px}
+    table{width:100%;border-collapse:collapse}
+    th{background:#f8f6f8;padding:10px 16px;text-align:left;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#888;border-bottom:1px solid var(--border)}
+    td{padding:12px 16px;border-bottom:1px solid #f5f3f5;font-size:14px;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#fdfcfd}
+
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px}
+    .badge-green{background:#e8f8ef;color:var(--green)}
+    .badge-red{background:#fdf0ef;color:var(--red)}
+    .badge-orange{background:#fef8e7;color:var(--orange)}
+    .badge-navy{background:#eef0f8;color:var(--navy)}
+
+    /* History */
+    .history-item{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:16px 20px;margin-bottom:12px}
+    .history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .history-date{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--navy)}
+    .history-lines{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+    .history-line{font-size:13px;color:#555;padding:6px 10px;background:#f8f6f8;border-radius:6px}
+
+    /* Success modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center}
+    .modal-overlay.show{display:flex}
+    .modal{background:var(--white);border-radius:20px;width:360px;max-width:95vw;padding:36px;text-align:center}
+    .modal-icon{font-size:60px;margin-bottom:16px}
+    .modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;color:var(--navy);margin-bottom:8px}
+    .modal-sub{font-size:14px;color:#888;margin-bottom:24px}
+    .btn-modal{background:var(--navy);color:var(--pink);border:none;padding:12px 28px;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:2px;cursor:pointer}
+
+    .loading{text-align:center;padding:40px;color:#aaa;font-size:14px}
+    .hidden{display:none}
+    .empty{text-align:center;padding:40px;color:#aaa;font-size:14px}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">☕ Fresh Mail</div>
+  <div class="header-store" id="headerStore"></div>
+  <div class="header-right">
+    <div class="header-user" id="headerUser"></div>
+    <button class="btn-logout" onclick="fmLogout()">ΕΞΟΔΟΣ</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">Μενού</div>
+    <div class="nav-item active" onclick="showTab('order')" id="nav-order">
+      <span class="nav-icon">📋</span> Παραγγελία Αύριο
+    </div>
+    <div class="nav-item" onclick="showTab('extra')" id="nav-extra">
+      <span class="nav-icon">⚡</span> Συμπληρωματική
+    </div>
+    <div class="nav-item" onclick="showTab('stock')" id="nav-stock">
+      <span class="nav-icon">📦</span> Απόθεμα / Λήξεις
+    </div>
+    <div class="nav-item" onclick="showTab('history')" id="nav-history">
+      <span class="nav-icon">📜</span> Ιστορικό
+    </div>
+  </div>
+
+  <div class="main" id="mainContent">
+    <div class="loading">Φόρτωση...</div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal">
+    <div class="modal-icon">✅</div>
+    <div class="modal-title">Η Παραγγελία Στάλθηκε!</div>
+    <div class="modal-sub" id="modalSub"></div>
+    <button class="btn-modal" onclick="closeSuccess()">OK</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  var FM_URL = 'https://slkgziugmtisawxeycmv.supabase.co';
+  var FM_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsa2d6aXVnbXRpc2F3eGV5Y212Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDUxNTUsImV4cCI6MjA4ODI4MTE1NX0.LVfCr7iF4ypR5vDsUzCZ32iKfbk0CVVS6fKWDBCH62k';
+  var fmDb = window.supabase.createClient(FM_URL, FM_KEY);
+
+  var currentUser = null;
+  var currentStore = null;
+  var allProducts = [];
+  var orderItems = {};
+
+  // ── Auth ──────────────────────────────────────────────────
+  (async function() {
+    var s = await fmDb.auth.getSession();
+    if (!s.data || !s.data.session) { location.href='giris.html'; return; }
+    var u = await fmDb.from('χρήστες').select('*,καταστήματα(*)').eq('auth_user_id', s.data.session.user.id).single();
+    if (!u.data || u.data['ρόλος'] !== 'store') { location.href='giris.html'; return; }
+    currentUser = u.data;
+    currentStore = u.data['καταστήματα'];
+    document.getElementById('headerUser').textContent = u.data['όνομα'];
+    document.getElementById('headerStore').textContent = '📍 ' + currentStore['όνομα'];
+    showTab('order');
+  })();
+
+  async function fmLogout() {
+    await fmDb.auth.signOut();
+    location.href='giris.html';
+  }
+
+  // ── Tabs ─────────────────────────────────────────────────
+  function showTab(tab) {
+    ['order','extra','stock','history'].forEach(function(t) {
+      document.getElementById('nav-'+t).classList.toggle('active', t===tab);
+    });
+    if (tab==='order')   renderOrderPage(false);
+    if (tab==='extra')   renderOrderPage(true);
+    if (tab==='stock')   renderStockPage();
+    if (tab==='history') renderHistoryPage();
+  }
+
+  // ── Order Page ────────────────────────────────────────────
+  async function renderOrderPage(isExtra) {
+    var main = document.getElementById('mainContent');
+    main.innerHTML = '<div class="loading">Φόρτωση προϊόντων...</div>';
+
+    // Έλεγξε cutoff
+    var now = new Date();
+    var cutoffHour = isExtra ? 12 : 21;
+    var cutoffMin  = isExtra ? 30 : 30;
+    var cutoffTime = (isExtra ? '12:30' : '21:30');
+    var isPastCutoff = now.getHours() > cutoffHour || (now.getHours() === cutoffHour && now.getMinutes() >= cutoffMin);
+
+    // Φόρτωσε προϊόντα
+    var r = await fmDb.from('προϊόντα').select('*').eq('ενεργό', true).order('κατηγορία').order('όνομα');
+    allProducts = r.data || [];
+
+    // Υπολόγισε παράδοση
+    var delivery = new Date();
+    delivery.setDate(delivery.getDate() + (isExtra ? 0 : 1));
+    var deliveryStr = delivery.toLocaleDateString('el-GR', {weekday:'long', day:'numeric', month:'long'});
+    var deliveryISO = delivery.toISOString().split('T')[0];
+
+    // Φόρτωσε stock για προτεινόμενη ποσότητα
+    var stockR = await fmDb.from('παρτιδες_αποθέματος')
+      .select('προϊόν_id, υπόλοιπο, ημερομηνία_λήξης')
+      .eq('κατάστημα_id', currentStore.id)
+      .gt('υπόλοιπο', 0);
+    var stockMap = {};
+    (stockR.data||[]).forEach(function(s) {
+      if (!stockMap[s['προϊόν_id']]) stockMap[s['προϊόν_id']] = 0;
+      // Μόνο stock που δεν λήγει μέχρι και την ημέρα παράδοσης
+      if (s['ημερομηνία_λήξης'] > deliveryISO) {
+        stockMap[s['προϊόν_id']] += s['υπόλοιπο'];
+      }
+    });
+
+    // Φόρτωσε μέσο όρο πωλήσεων (τελευταίες 14 μέρες)
+    var daysAgo = new Date(); daysAgo.setDate(daysAgo.getDate()-14);
+    var salesR = await fmDb.from('πωλήσεις')
+      .select('προϊόν_id, ποσότητα')
+      .eq('κατάστημα_id', currentStore.id)
+      .gte('ημερομηνία', daysAgo.toISOString().split('T')[0]);
+    var salesMap = {};
+    (salesR.data||[]).forEach(function(s) {
+      if (!salesMap[s['προϊόν_id']]) salesMap[s['προϊόν_id']] = 0;
+      salesMap[s['προϊόν_id']] += s['ποσότητα'];
+    });
+
+    // Ομαδοποίηση ανά κατηγορία
+    var categories = {};
+    allProducts.forEach(function(p) {
+      var cat = p['κατηγορία'] || 'Άλλα';
+      if (!categories[cat]) categories[cat] = [];
+      categories[cat].push(p);
+    });
+
+    // Render
+    var html = '';
+
+    // Banner
+    html += '<div class="cutoff-banner">';
+    html += '<div>';
+    html += '<div class="cutoff-text">'+(isExtra?'⚡ ΣΥΜΠΛΗΡΩΜΑΤΙΚΗ ΠΑΡΑΓΓΕΛΙΑ':'📋 ΚΑΝΟΝΙΚΗ ΠΑΡΑΓΓΕΛΙΑ')+'</div>';
+    html += '<div style="font-size:13px;opacity:0.8;margin-top:4px">Παράδοση: '+deliveryStr+'</div>';
+    html += '</div>';
+    html += '<div>';
+    html += '<div style="font-size:11px;opacity:0.7;margin-bottom:2px">CUTOFF</div>';
+    html += '<div class="cutoff-time">'+cutoffTime+'</div>';
+    html += '</div>';
+    html += '</div>';
+
+    if (isPastCutoff) {
+      html += '<div style="background:#fdf0ef;border:1px solid #f5c6c2;color:#c0392b;border-radius:12px;padding:16px 20px;text-align:center;font-weight:600">⚠️ Η ώρα υποβολής έχει παρέλθει ('+cutoffTime+')</div>';
+    } else {
+      Object.keys(categories).sort().forEach(function(cat) {
+        html += '<div class="category-section">';
+        html += '<div class="category-title">'+cat+'</div>';
+        html += '<div class="product-grid">';
+        categories[cat].forEach(function(p) {
+          var stock = stockMap[p.id] || 0;
+          var avgSales = salesMap[p.id] ? Math.ceil(salesMap[p.id]/14) : 1;
+          var suggested = Math.max(0, avgSales - stock);
+          var currentQty = orderItems[p.id] || 0;
+          html += '<div class="product-card">';
+          html += '<div class="product-info">';
+          html += '<div class="product-name">'+p['όνομα']+'</div>';
+          html += '<div class="product-meta">'+p['κωδικός']+' · '+p['ημέρες_ζωής']+' ημ. ζωής</div>';
+          html += '<div class="product-suggested">📊 Απόθεμα: '+stock+' · Πρότεινόμενη: <strong>'+suggested+'</strong></div>';
+          html += '</div>';
+          html += '<div class="qty-control">';
+          html += '<button class="qty-btn" onclick="changeQty('+p.id+',-1)">−</button>';
+          html += '<input class="qty-input" type="number" id="qty-'+p.id+'" value="'+currentQty+'" min="0" onchange="setQty('+p.id+',this.value)"/>';
+          html += '<button class="qty-btn" onclick="changeQty('+p.id+',1)">+</button>';
+          html += '</div>';
+          html += '</div>';
+        });
+        html += '</div></div>';
+      });
+    }
+
+    main.innerHTML = html;
+
+    // Footer
+    if (!isPastCutoff) {
+      var footer = document.createElement('div');
+      footer.className = 'order-footer';
+      footer.id = 'orderFooter';
+      footer.innerHTML = '<div class="order-summary">Σύνολο: <strong id="totalQty">0</strong> τεμάχια</div><button class="btn-submit" onclick="submitOrder('+isExtra+')" id="btnSubmit">ΥΠΟΒΟΛΗ ΠΑΡΑΓΓΕΛΙΑΣ</button>';
+      document.querySelector('.layout').appendChild(footer);
+    }
+  }
+
+  function changeQty(productId, delta) {
+    var input = document.getElementById('qty-'+productId);
+    var val = Math.max(0, (parseInt(input.value)||0) + delta);
+    input.value = val;
+    orderItems[productId] = val;
+    updateTotal();
+  }
+
+  function setQty(productId, val) {
+    orderItems[productId] = Math.max(0, parseInt(val)||0);
+    updateTotal();
+  }
+
+  function updateTotal() {
+    var total = Object.values(orderItems).reduce(function(a,b){return a+(b||0)},0);
+    var el = document.getElementById('totalQty');
+    if (el) el.textContent = total;
+  }
+
+  async function submitOrder(isExtra) {
+    var btn = document.getElementById('btnSubmit');
+    var items = Object.entries(orderItems).filter(function(e){return e[1]>0});
+    if (items.length === 0) { alert('Δεν έχεις επιλέξει τεμάχια!'); return; }
+    btn.disabled = true; btn.textContent = '...';
+
+    var delivery = new Date();
+    delivery.setDate(delivery.getDate() + (isExtra ? 0 : 1));
+
+    // Δημιούργησε παραγγελία
+    var orderR = await fmDb.from('παραγγελίες').insert({
+      'κατάστημα_id': currentStore.id,
+      'ημερομηνία_παράδοσης': delivery.toISOString().split('T')[0],
+      'τύπος': isExtra ? 'συμπληρωματική' : 'κανονική',
+      'κατάσταση': 'υποβλήθηκε'
+    }).select('id').single();
+
+    if (orderR.error) { alert('Σφάλμα: '+orderR.error.message); btn.disabled=false; return; }
+
+    // Δημιούργησε γραμμές
+    var lines = items.map(function(e){return{
+      'παραγγελία_id': orderR.data.id,
+      'προϊόν_id': parseInt(e[0]),
+      'ποσότητα_ζητήθηκε': e[1],
+      'ποσότητα_στάλθηκε': 0,
+      'είναι_συμπληρωματική': isExtra
+    }});
+    await fmDb.from('γραμμές_παραγγελίας').insert(lines);
+
+    // Reset
+    orderItems = {};
+    var total = items.reduce(function(a,e){return a+e[1]},0);
+    document.getElementById('modalSub').textContent = total+' τεμάχια για '+delivery.toLocaleDateString('el-GR');
+    document.getElementById('successModal').classList.add('show');
+  }
+
+  function closeSuccess() {
+    document.getElementById('successModal').classList.remove('show');
+    var f = document.getElementById('orderFooter');
+    if (f) f.remove();
+    showTab('order');
+  }
+
+  // ── Stock Page ────────────────────────────────────────────
+  async function renderStockPage() {
+    var main = document.getElementById('mainContent');
+    main.innerHTML = '<div class="loading">Φόρτωση αποθέματος...</div>';
+    var r = await fmDb.from('παρτιδες_αποθέματος')
+      .select('*, προϊόντα(όνομα,κατηγορία)')
+      .eq('κατάστημα_id', currentStore.id)
+      .gt('υπόλοιπο', 0)
+      .order('ημερομηνία_λήξης');
+
+    var today = new Date().toISOString().split('T')[0];
+    var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+    var tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    var html = '<div class="page-title">Απόθεμα & Λήξεις</div>';
+    html += '<div class="page-sub">'+currentStore['όνομα']+' — Τρέχον stock ανά παρτίδα</div>';
+    html += '<div class="card"><div class="card-head"><div class="card-head-title">ΠΑΡΤΙΔΕΣ STOCK</div></div>';
+    html += '<table><thead><tr><th>Προϊόν</th><th>Κατηγορία</th><th>Λήξη</th><th>Υπόλοιπο</th><th>Κατάσταση</th></tr></thead><tbody>';
+
+    var data = r.data || [];
+    if (data.length === 0) {
+      html += '<tr><td colspan="5" class="empty">Δεν υπάρχει stock ακόμα</td></tr>';
+    } else {
+      data.forEach(function(s) {
+        var expiry = s['ημερομηνία_λήξης'];
+        var isExpired = expiry <= today;
+        var isExpiringSoon = expiry === tomorrowStr;
+        var statusClass = isExpired ? 'badge-red' : isExpiringSoon ? 'badge-orange' : 'badge-green';
+        var statusText = isExpired ? '🔴 Ληγμένο' : isExpiringSoon ? '🟠 Λήγει αύριο' : '🟢 OK';
+        html += '<tr>';
+        html += '<td><strong>'+s['προϊόντα']['όνομα']+'</strong></td>';
+        html += '<td>'+s['προϊόντα']['κατηγορία']+'</td>';
+        html += '<td><span class="badge '+statusClass+'">'+expiry+'</span></td>';
+        html += '<td><strong style="font-size:16px">'+s['υπόλοιπο']+'</strong></td>';
+        html += '<td>'+statusText+'</td>';
+        html += '</tr>';
+      });
+    }
+    html += '</tbody></table></div>';
+    main.innerHTML = html;
+  }
+
+  // ── History Page ──────────────────────────────────────────
+  async function renderHistoryPage() {
+    var main = document.getElementById('mainContent');
+    main.innerHTML = '<div class="loading">Φόρτωση ιστορικού...</div>';
+    var r = await fmDb.from('παραγγελίες')
+      .select('*, γραμμές_παραγγελίας(ποσότητα_ζητήθηκε,ποσότητα_στάλθηκε,προϊόντα(όνομα))')
+      .eq('κατάστημα_id', currentStore.id)
+      .order('created_at', {ascending:false})
+      .limit(20);
+
+    var html = '<div class="page-title">Ιστορικό Παραγγελιών</div>';
+    html += '<div class="page-sub">Τελευταίες 20 παραγγελίες</div>';
+
+    var data = r.data || [];
+    if (data.length === 0) {
+      html += '<div class="card"><div class="empty">Δεν υπάρχουν παραγγελίες ακόμα</div></div>';
+    } else {
+      data.forEach(function(o) {
+        var typeColor = o['τύπος']==='συμπληρωματική' ? 'badge-orange' : 'badge-navy';
+        html += '<div class="history-item">';
+        html += '<div class="history-header">';
+        html += '<div class="history-date">📅 '+o['ημερομηνία_παράδοσης']+'</div>';
+        html += '<div><span class="badge '+typeColor+'">'+o['τύπος'].toUpperCase()+'</span> ';
+        html += '<span class="badge badge-green">'+o['κατάσταση'].toUpperCase()+'</span></div>';
+        html += '</div>';
+        html += '<div class="history-lines">';
+        (o['γραμμές_παραγγελίας']||[]).forEach(function(l) {
+          html += '<div class="history-line">'+l['προϊόντα']['όνομα']+': <strong>'+l['ποσότητα_ζητήθηκε']+'</strong>';
+          if (l['ποσότητα_στάλθηκε']>0) html += ' → στάλθηκαν: <strong>'+l['ποσότητα_στάλθηκε']+'</strong>';
+          html += '</div>';
+        });
+        html += '</div></div>';
+      });
+    }
+    main.innerHTML = html;
+  }
+</script>
+</body>
+</html>
