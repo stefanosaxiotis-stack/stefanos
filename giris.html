@@ -23,29 +23,21 @@
     .logo-sub{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:4px;color:rgba(242,196,206,0.6);text-transform:uppercase;margin-top:4px}
     .erp-badge{display:inline-block;margin-top:14px;background:rgba(242,196,206,0.15);border:1px solid rgba(242,196,206,0.3);color:var(--pink);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:11px;letter-spacing:3px;text-transform:uppercase;padding:5px 14px;border-radius:20px}
     .card-body{padding:32px 40px 40px}
-    .form-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--navy);letter-spacing:1px;margin-bottom:24px;text-transform:uppercase}
-    .tabs{display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:2px solid var(--navy)}
-    .tab{flex:1;padding:10px;text-align:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;background:var(--white);color:var(--navy);transition:all 0.2s}
-    .tab.active{background:var(--navy);color:var(--pink)}
+    .form-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--navy);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase}
+    .form-sub{font-size:13px;color:#888;margin-bottom:24px;line-height:1.5}
     .field{margin-bottom:18px}
     .field label{display:block;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:8px;opacity:0.7}
     .field input{width:100%;padding:13px 16px;border:2px solid #e8e4e8;border-radius:10px;font-family:'Barlow',sans-serif;font-size:15px;color:var(--navy);background:var(--grey);outline:none;transition:border-color 0.2s}
     .field input:focus{border-color:var(--navy);background:var(--white)}
     .field input::placeholder{color:#bbb}
-    .msg{display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:18px}
+    .msg{display:none;border-radius:8px;padding:12px 14px;font-size:13px;margin-bottom:18px;line-height:1.5}
     .msg.error{background:#fdf0ef;border:1px solid #f5c6c2;color:var(--err)}
-    .msg.success{background:#eafaf1;border:1px solid #a9dfbf;color:var(--green)}
+    .msg.success{background:#eafaf1;border:1px solid #a9dfbf;color:#1e8449}
     .msg.show{display:block}
-    .btn-main{width:100%;padding:15px;background:var(--navy);color:var(--pink);border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:background 0.2s,transform 0.15s;margin-bottom:0}
+    .btn-main{width:100%;padding:15px;background:var(--navy);color:var(--pink);border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:background 0.2s,transform 0.15s}
     .btn-main:hover{background:var(--navy2);transform:translateY(-1px)}
     .btn-main:disabled{opacity:0.6;pointer-events:none}
-    .divider{text-align:center;margin:16px 0;font-size:12px;color:#bbb;position:relative}
-    .divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e8e4e8}
-    .divider::before{left:0}
-    .divider::after{right:0}
     .card-footer{text-align:center;padding:0 40px 28px;font-size:11px;color:#bbb}
-    .tab-content{display:none}
-    .tab-content.active{display:block}
   </style>
 </head>
 <body>
@@ -58,37 +50,13 @@
     </div>
     <div class="card-body">
       <div class="form-title">Είσοδος</div>
-
-      <!-- Tabs -->
-      <div class="tabs">
-        <div class="tab active" onclick="switchTab('password')">Κωδικός</div>
-        <div class="tab" onclick="switchTab('magic')">Magic Link</div>
-      </div>
-
+      <div class="form-sub">Βάλε το email σου και θα σου στείλουμε ένα link εισόδου.</div>
       <div class="msg" id="msgBox"></div>
-
-      <!-- Password tab -->
-      <div class="tab-content active" id="tab-password">
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="pwEmail" placeholder="user@freshmail.gr" autocomplete="email"/>
-        </div>
-        <div class="field">
-          <label>Κωδικός</label>
-          <input type="password" id="pwPass" placeholder="••••••••" autocomplete="current-password"/>
-        </div>
-        <button class="btn-main" id="btnPw" onclick="doPasswordLogin()">ΣΥΝΔΕΣΗ</button>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="fmEmail" placeholder="user@freshmail.gr" autocomplete="email"/>
       </div>
-
-      <!-- Magic Link tab -->
-      <div class="tab-content" id="tab-magic">
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="mlEmail" placeholder="user@freshmail.gr"/>
-        </div>
-        <button class="btn-main" id="btnMl" onclick="doMagicLink()">ΑΠΟΣΤΟΛΗ LINK</button>
-      </div>
-
+      <button class="btn-main" id="fmBtn" onclick="sendMagicLink()">ΑΠΟΣΤΟΛΗ LINK ΕΙΣΟΔΟΥ</button>
     </div>
     <div class="card-footer">© 2026 Fresh Mail Coffee Roasters</div>
   </div>
@@ -99,69 +67,46 @@
     var FM_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsa2d6aXVnbXRpc2F3eGV5Y212Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDUxNTUsImV4cCI6MjA4ODI4MTE1NX0.LVfCr7iF4ypR5vDsUzCZ32iKfbk0CVVS6fKWDBCH62k';
     var fmDb = window.supabase.createClient(FM_URL, FM_KEY);
 
-    function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active', (i===0&&tab==='password')||(i===1&&tab==='magic'))});
-      document.getElementById('tab-password').classList.toggle('active', tab==='password');
-      document.getElementById('tab-magic').classList.toggle('active', tab==='magic');
-      document.getElementById('msgBox').classList.remove('show');
-    }
+    document.getElementById('fmEmail').addEventListener('keydown', function(e){
+      if(e.key==='Enter') sendMagicLink();
+    });
 
-    function showMsg(text, type) {
+    function showMsg(text, type){
       var el = document.getElementById('msgBox');
-      el.textContent = text;
-      el.className = 'msg ' + type + ' show';
+      el.innerHTML = text;
+      el.className = 'msg '+type+' show';
     }
 
-    async function redirectByRole(userId) {
-      var r = await fmDb.from('χρήστες').select('ρόλος').eq('auth_user_id', userId).single();
-      if (!r.data) { showMsg('❌ Ο χρήστης δεν βρέθηκε στο σύστημα.', 'error'); return; }
-      var role = r.data['ρόλος'];
-      if      (role==='admin')   location.href='admin.html';
-      else if (role==='kitchen') location.href='kitchen.html';
-      else if (role==='store')   location.href='store.html';
-    }
-
-    async function doPasswordLogin() {
-      var email = document.getElementById('pwEmail').value.trim();
-      var pass  = document.getElementById('pwPass').value;
-      var btn   = document.getElementById('btnPw');
-      if (!email||!pass) { showMsg('❌ Συμπλήρωσε email και κωδικό.','error'); return; }
+    async function sendMagicLink(){
+      var email = document.getElementById('fmEmail').value.trim();
+      var btn = document.getElementById('fmBtn');
+      if(!email){ showMsg('❌ Βάλε το email σου.','error'); return; }
       btn.disabled = true;
       btn.textContent = '...';
-      var r = await fmDb.auth.signInWithPassword({email:email, password:pass});
-      if (r.error) {
-        showMsg('❌ Λάθος email ή κωδικός.', 'error');
-        btn.disabled=false; btn.textContent='ΣΥΝΔΕΣΗ';
-      } else {
-        await redirectByRole(r.data.user.id);
-      }
-    }
-
-    async function doMagicLink() {
-      var email = document.getElementById('mlEmail').value.trim();
-      var btn   = document.getElementById('btnMl');
-      if (!email) { showMsg('❌ Βάλε το email σου.','error'); return; }
-      btn.disabled = true;
       var r = await fmDb.auth.signInWithOtp({
         email: email,
         options: { emailRedirectTo: 'https://stefanosaxiotis-stack.github.io/stefanos/giris.html' }
       });
-      if (r.error) {
-        showMsg('❌ ' + r.error.message, 'error');
-        btn.disabled = false;
+      if(r.error){
+        showMsg('❌ '+r.error.message, 'error');
+        btn.disabled=false; btn.textContent='ΑΠΟΣΤΟΛΗ LINK ΕΙΣΟΔΟΥ';
       } else {
-        showMsg('✅ Έφτασε email! Πάτα το link για να μπεις.', 'success');
+        showMsg('✅ <strong>Το link στάλθηκε!</strong><br>Άνοιξε το email σου και πάτα το link για να μπεις.','success');
+        btn.textContent = '✅ ΕΣΤΕΙΛΑΜΕ ΤΟ LINK';
       }
     }
 
-    document.getElementById('pwPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doPasswordLogin(); });
-    document.getElementById('mlEmail').addEventListener('keydown', function(e){ if(e.key==='Enter') doMagicLink(); });
-
-    // Αν έρθει από magic link
+    // Αν έρθει από magic link — κάνε redirect ανάλογα τον ρόλο
     (async function(){
       var s = await fmDb.auth.getSession();
-      if (s.data && s.data.session) {
-        await redirectByRole(s.data.session.user.id);
+      if(s.data && s.data.session){
+        var u = await fmDb.from('χρήστες').select('ρόλος').eq('auth_user_id', s.data.session.user.id).single();
+        if(u.data){
+          var r = u.data['ρόλος'];
+          if(r==='admin')   location.href='admin.html';
+          if(r==='kitchen') location.href='kitchen.html';
+          if(r==='store')   location.href='store.html';
+        }
       }
     })();
   </script>
