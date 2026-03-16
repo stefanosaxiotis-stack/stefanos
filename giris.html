@@ -23,16 +23,14 @@
     .logo-sub{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:4px;color:rgba(242,196,206,0.6);text-transform:uppercase;margin-top:4px}
     .erp-badge{display:inline-block;margin-top:14px;background:rgba(242,196,206,0.15);border:1px solid rgba(242,196,206,0.3);color:var(--pink);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:11px;letter-spacing:3px;text-transform:uppercase;padding:5px 14px;border-radius:20px}
     .card-body{padding:32px 40px 40px}
-    .form-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--navy);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase}
-    .form-sub{font-size:13px;color:#888;margin-bottom:24px;line-height:1.5}
+    .form-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--navy);letter-spacing:1px;margin-bottom:24px;text-transform:uppercase}
     .field{margin-bottom:18px}
     .field label{display:block;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:8px;opacity:0.7}
     .field input{width:100%;padding:13px 16px;border:2px solid #e8e4e8;border-radius:10px;font-family:'Barlow',sans-serif;font-size:15px;color:var(--navy);background:var(--grey);outline:none;transition:border-color 0.2s}
     .field input:focus{border-color:var(--navy);background:var(--white)}
     .field input::placeholder{color:#bbb}
-    .msg{display:none;border-radius:8px;padding:12px 14px;font-size:13px;margin-bottom:18px;line-height:1.5}
+    .msg{display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:18px}
     .msg.error{background:#fdf0ef;border:1px solid #f5c6c2;color:var(--err)}
-    .msg.success{background:#eafaf1;border:1px solid #a9dfbf;color:#1e8449}
     .msg.show{display:block}
     .btn-main{width:100%;padding:15px;background:var(--navy);color:var(--pink);border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:background 0.2s,transform 0.15s}
     .btn-main:hover{background:var(--navy2);transform:translateY(-1px)}
@@ -50,13 +48,16 @@
     </div>
     <div class="card-body">
       <div class="form-title">Είσοδος</div>
-      <div class="form-sub">Βάλε το email σου και θα σου στείλουμε ένα link εισόδου.</div>
       <div class="msg" id="msgBox"></div>
       <div class="field">
         <label>Email</label>
         <input type="email" id="fmEmail" placeholder="user@freshmail.gr" autocomplete="email"/>
       </div>
-      <button class="btn-main" id="fmBtn" onclick="sendMagicLink()">ΑΠΟΣΤΟΛΗ LINK ΕΙΣΟΔΟΥ</button>
+      <div class="field">
+        <label>Κωδικός</label>
+        <input type="password" id="fmPass" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn-main" id="fmBtn" onclick="doLogin()">ΣΥΝΔΕΣΗ</button>
     </div>
     <div class="card-footer">© 2026 Fresh Mail Coffee Roasters</div>
   </div>
@@ -67,46 +68,45 @@
     var FM_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsa2d6aXVnbXRpc2F3eGV5Y212Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDUxNTUsImV4cCI6MjA4ODI4MTE1NX0.LVfCr7iF4ypR5vDsUzCZ32iKfbk0CVVS6fKWDBCH62k';
     var fmDb = window.supabase.createClient(FM_URL, FM_KEY);
 
-    document.getElementById('fmEmail').addEventListener('keydown', function(e){
-      if(e.key==='Enter') sendMagicLink();
-    });
+    document.getElementById('fmPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+    document.getElementById('fmEmail').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('fmPass').focus(); });
 
-    function showMsg(text, type){
+    function showError(msg){
       var el = document.getElementById('msgBox');
-      el.innerHTML = text;
-      el.className = 'msg '+type+' show';
+      el.textContent = '❌ ' + msg;
+      el.className = 'msg error show';
     }
 
-    async function sendMagicLink(){
+    async function redirectByRole(userId){
+      var r = await fmDb.from('χρήστες').select('ρόλος').eq('auth_user_id', userId).single();
+      if(!r.data){ showError('Ο χρήστης δεν βρέθηκε στο σύστημα.'); return false; }
+      var role = r.data['ρόλος'];
+      if(role==='admin')   { location.href='admin.html'; return true; }
+      if(role==='kitchen') { location.href='kitchen.html'; return true; }
+      if(role==='store')   { location.href='store.html'; return true; }
+      return false;
+    }
+
+    async function doLogin(){
       var email = document.getElementById('fmEmail').value.trim();
-      var btn = document.getElementById('fmBtn');
-      if(!email){ showMsg('❌ Βάλε το email σου.','error'); return; }
-      btn.disabled = true;
-      btn.textContent = '...';
-      var r = await fmDb.auth.signInWithOtp({
-        email: email,
-        options: { emailRedirectTo: 'https://stefanosaxiotis-stack.github.io/stefanos/giris.html' }
-      });
+      var pass  = document.getElementById('fmPass').value;
+      var btn   = document.getElementById('fmBtn');
+      if(!email||!pass){ showError('Συμπλήρωσε email και κωδικό.'); return; }
+      btn.disabled=true; btn.textContent='...';
+      var r = await fmDb.auth.signInWithPassword({email:email, password:pass});
       if(r.error){
-        showMsg('❌ '+r.error.message, 'error');
-        btn.disabled=false; btn.textContent='ΑΠΟΣΤΟΛΗ LINK ΕΙΣΟΔΟΥ';
+        showError('Λάθος email ή κωδικός.');
+        btn.disabled=false; btn.textContent='ΣΥΝΔΕΣΗ';
       } else {
-        showMsg('✅ <strong>Το link στάλθηκε!</strong><br>Άνοιξε το email σου και πάτα το link για να μπεις.','success');
-        btn.textContent = '✅ ΕΣΤΕΙΛΑΜΕ ΤΟ LINK';
+        await redirectByRole(r.data.user.id);
       }
     }
 
-    // Αν έρθει από magic link — κάνε redirect ανάλογα τον ρόλο
+    // Αν είναι ήδη logged in
     (async function(){
       var s = await fmDb.auth.getSession();
-      if(s.data && s.data.session){
-        var u = await fmDb.from('χρήστες').select('ρόλος').eq('auth_user_id', s.data.session.user.id).single();
-        if(u.data){
-          var r = u.data['ρόλος'];
-          if(r==='admin')   location.href='admin.html';
-          if(r==='kitchen') location.href='kitchen.html';
-          if(r==='store')   location.href='store.html';
-        }
+      if(s.data&&s.data.session){
+        await redirectByRole(s.data.session.user.id);
       }
     })();
   </script>
