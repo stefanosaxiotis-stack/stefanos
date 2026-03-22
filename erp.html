@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fresh Mail ERP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--navy:#1F2D6E;--pink:#F2C4CE;--white:#FFFFFF;--navy2:#162058;--grey:#f4f2f4;--border:#e8e4e8;--green:#27ae60;--red:#e74c3c;--orange:#f39c12}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Barlow',sans-serif;background:var(--grey);color:#222;min-height:100vh}
+
+    /* ── LOGIN ── */
+    #loginScreen{display:flex;min-height:100vh;background:var(--navy);align-items:center;justify-content:center;position:relative;overflow:hidden}
+    #loginScreen .bg span{position:absolute;border-radius:50%;background:var(--pink);opacity:0.06;animation:float linear infinite}
+    #loginScreen .bg span:nth-child(1){width:400px;height:400px;top:-100px;left:-100px;animation-duration:18s}
+    #loginScreen .bg span:nth-child(2){width:250px;height:250px;bottom:-60px;right:-60px;animation-duration:24s;animation-delay:-8s}
+    @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-30px)}100%{transform:translateY(0)}}
+    .login-card{position:relative;z-index:1;background:var(--white);border-radius:20px;width:420px;max-width:95vw;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.35);animation:slideUp 0.5s ease both}
+    @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .login-header{background:var(--navy);padding:32px 40px 24px;text-align:center;position:relative}
+    .login-header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:18px;background:var(--white);border-radius:18px 18px 0 0}
+    .lh-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;letter-spacing:2px;color:var(--pink);text-transform:uppercase;line-height:1}
+    .lh-sub{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:4px;color:rgba(242,196,206,0.6);text-transform:uppercase;margin-top:4px}
+    .lh-badge{display:inline-block;margin-top:12px;background:rgba(242,196,206,0.15);border:1px solid rgba(242,196,206,0.3);color:var(--pink);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:4px 12px;border-radius:20px}
+    .login-body{padding:28px 40px 36px}
+    .login-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--navy);letter-spacing:1px;margin-bottom:20px;text-transform:uppercase}
+    .lf{margin-bottom:16px}
+    .lf label{display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:6px;opacity:0.7}
+    .lf input{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:8px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--navy);background:#f8f6f8;outline:none;transition:border-color 0.2s}
+    .lf input:focus{border-color:var(--navy);background:var(--white)}
+    .lf input::placeholder{color:#ccc}
+    .lerr{display:none;background:#fdf0ef;border:1px solid #f5c6c2;color:var(--red);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+    .lerr.show{display:block}
+    .btn-login{width:100%;padding:14px;background:var(--navy);color:var(--pink);border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background 0.2s}
+    .btn-login:hover{background:var(--navy2)}
+    .btn-login:disabled{opacity:0.6;pointer-events:none}
+
+    /* ── APP ── */
+    #appScreen{display:none}
+    .header{background:var(--navy);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,0.2)}
+    .h-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:var(--pink);letter-spacing:2px}
+    .h-info{font-family:'Barlow Condensed',sans-serif;font-size:14px;color:rgba(242,196,206,0.7);letter-spacing:1px}
+    .h-right{display:flex;align-items:center;gap:12px}
+    .h-user{font-size:12px;color:rgba(242,196,206,0.6)}
+    .btn-out{background:rgba(242,196,206,0.15);border:1px solid rgba(242,196,206,0.3);color:var(--pink);padding:5px 12px;border-radius:6px;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:1px;cursor:pointer}
+
+    .layout{display:flex;min-height:calc(100vh - 56px)}
+    .sidebar{width:210px;background:var(--white);border-right:1px solid var(--border);padding:16px 0;flex-shrink:0}
+    .s-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:3px;color:#aaa;text-transform:uppercase;padding:0 18px 8px}
+    .nav{display:flex;align-items:center;gap:8px;padding:10px 18px;cursor:pointer;font-size:13px;font-weight:500;color:#666;transition:all 0.15s;border-left:3px solid transparent}
+    .nav:hover{background:#f8f6f8;color:var(--navy)}
+    .nav.active{background:#f0edf8;color:var(--navy);border-left-color:var(--navy);font-weight:600}
+    .nav-icon{font-size:16px;width:22px;text-align:center}
+    .main{flex:1;padding:24px;overflow-x:auto}
+
+    /* ── SHARED ── */
+    .page-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:24px;color:var(--navy);letter-spacing:1px;margin-bottom:4px}
+    .page-sub{font-size:12px;color:#999;margin-bottom:20px}
+    .card{background:var(--white);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:18px}
+    .card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-head-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--navy);letter-spacing:1px}
+    table{width:100%;border-collapse:collapse}
+    th{background:#f8f6f8;padding:9px 14px;text-align:left;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#aaa;border-bottom:1px solid var(--border)}
+    td{padding:11px 14px;border-bottom:1px solid #f5f3f5;font-size:13px;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#fdfcfd}
+    .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:1px}
+    .bg{background:#e8f8ef;color:var(--green)}
+    .br{background:#fdf0ef;color:var(--red)}
+    .bn{background:#eef0f8;color:var(--navy)}
+    .bo{background:#fef8e7;color:var(--orange)}
+    .btn-add{background:var(--navy);color:var(--pink);border:none;padding:7px 14px;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer}
+    .btn-sm{padding:4px 10px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:none}
+    .be{background:#eef0f8;color:var(--navy)}
+    .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+    .stat{background:var(--white);border-radius:10px;border:1px solid var(--border);padding:16px;text-align:center}
+    .stat-n{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:30px;color:var(--navy)}
+    .stat-l{font-size:11px;color:#aaa;margin-top:2px;text-transform:uppercase;letter-spacing:1px}
+
+    /* ── MODAL ── */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;align-items:center;justify-content:center}
+    .overlay.show{display:flex}
+    .modal{background:var(--white);border-radius:14px;width:440px;max-width:95vw;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+    .modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--navy);margin-bottom:18px}
+    .fg{margin-bottom:14px}
+    .fg label{display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:5px;opacity:0.7}
+    .fg input,.fg select{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:7px;font-family:'Barlow',sans-serif;font-size:13px;color:var(--navy);outline:none;transition:border-color 0.2s;background:var(--white)}
+    .fg input:focus,.fg select:focus{border-color:var(--navy)}
+    .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+    .btn-cancel{background:var(--grey);color:#666;border:none;padding:9px 18px;border-radius:7px;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:1px;cursor:pointer}
+    .btn-save{background:var(--navy);color:var(--pink);border:none;padding:9px 18px;border-radius:7px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;cursor:pointer}
+    .btn-save:disabled{opacity:0.5;pointer-events:none}
+    .modal-msg{display:none;border-radius:7px;padding:9px 12px;font-size:12px;margin-bottom:14px}
+    .modal-msg.ok{background:#eafaf1;border:1px solid #a9dfbf;color:#1e8449;display:block}
+    .modal-msg.err{background:#fdf0ef;border:1px solid #f5c6c2;color:var(--red);display:block}
+
+    /* ── ORDER ── */
+    .cutoff{background:linear-gradient(135deg,var(--navy),#2d3f9e);color:var(--pink);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+    .cutoff-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px}
+    .cutoff-time{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--white)}
+    .cat-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+    .prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+    .prod-card{background:var(--white);border-radius:10px;border:1px solid var(--border);padding:14px;display:flex;align-items:center;justify-content:space-between}
+    .prod-name{font-weight:600;font-size:13px;margin-bottom:3px}
+    .prod-meta{font-size:11px;color:#aaa}
+    .prod-sug{font-size:10px;color:var(--navy);font-weight:600;margin-top:3px}
+    .qty-wrap{display:flex;align-items:center;gap:6px}
+    .qty-btn{width:28px;height:28px;border-radius:6px;border:2px solid var(--navy);background:var(--white);color:var(--navy);font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .qty-btn:hover{background:var(--navy);color:var(--pink)}
+    .qty-in{width:44px;text-align:center;border:2px solid var(--border);border-radius:6px;padding:4px 2px;font-family:'Barlow',sans-serif;font-size:14px;font-weight:700;color:var(--navy);outline:none}
+    .qty-in:focus{border-color:var(--navy)}
+    .order-bar{position:sticky;bottom:0;background:var(--white);border-top:2px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 16px rgba(0,0,0,0.06)}
+    .btn-submit{background:var(--navy);color:var(--pink);border:none;padding:12px 28px;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;cursor:pointer}
+    .btn-submit:disabled{opacity:0.5;pointer-events:none}
+
+    /* KITCHEN */
+    .store-hdr{background:var(--navy);color:var(--pink);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:1px}
+    .total-row td{background:#f0edf8;font-weight:700}
+
+    .loading{text-align:center;padding:40px;color:#ccc;font-size:13px}
+    .empty{text-align:center;padding:30px;color:#ccc;font-size:13px}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="loginScreen">
+  <div class="bg"><span></span><span></span></div>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="lh-logo">Fresh Mail</div>
+      <div class="lh-sub">Coffee Roasters</div>
+      <div class="lh-badge">ERP System</div>
+    </div>
+    <div class="login-body">
+      <div class="login-title">Είσοδος</div>
+      <div class="lerr" id="lerr"></div>
+      <div class="lf"><label>Email</label><input type="email" id="lEmail" placeholder="user@freshmail.gr" autocomplete="email"/></div>
+      <div class="lf"><label>Κωδικός</label><input type="password" id="lPass" placeholder="••••••••" autocomplete="current-password"/></div>
+      <button class="btn-login" id="lBtn" onclick="doLogin()">ΣΥΝΔΕΣΗ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="appScreen">
+  <div class="header">
+    <div class="h-logo">☕ Fresh Mail ERP</div>
+    <div class="h-info" id="hInfo"></div>
+    <div class="h-right">
+      <div class="h-user" id="hUser"></div>
+      <button class="btn-out" onclick="doLogout()">ΕΞΟΔΟΣ</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main" id="main"><div class="loading">Φόρτωση...</div></div>
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+<!-- Product Modal -->
+<div class="overlay" id="mProduct">
+  <div class="modal">
+    <div class="modal-title" id="mProductTitle">Προϊόν</div>
+    <div class="modal-msg" id="mProductMsg"></div>
+    <input type="hidden" id="mProductId"/>
+    <div class="fg"><label>Όνομα</label><input type="text" id="mProductName"/></div>
+    <div class="fg"><label>Κωδικός POS</label><input type="text" id="mProductCode"/></div>
+    <div class="fg"><label>Κατηγορία</label>
+      <select id="mProductCat">
+        <option>Bowls</option><option>Cakes / Cheesecake</option><option>Cookies</option>
+        <option>Energy Balls</option><option>Pots</option><option>Rolls</option>
+        <option>Sandwich</option><option>Κουλούρια</option><option>Μπάρες</option><option>Σαλάτες</option>
+      </select>
+    </div>
+    <div class="fg"><label>Ημέρες Ζωής</label><input type="number" id="mProductDays" min="1"/></div>
+    <div class="fg"><label>Κατάσταση</label><select id="mProductActive"><option value="true">Ενεργό</option><option value="false">Ανενεργό</option></select></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('mProduct')">Άκυρο</button>
+      <button class="btn-save" onclick="saveProduct()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="overlay" id="mUser">
+  <div class="modal">
+    <div class="modal-title">Νέος Χρήστης</div>
+    <div class="modal-msg" id="mUserMsg"></div>
+    <div class="fg"><label>Όνομα</label><input type="text" id="mUserName" placeholder="π.χ. Παγκράτι"/></div>
+    <div class="fg"><label>Email</label><input type="email" id="mUserEmail" placeholder="user@freshmail.gr"/></div>
+    <div class="fg"><label>Ρόλος</label>
+      <select id="mUserRole" onchange="toggleStoreField()">
+        <option value="store">Κατάστημα</option>
+        <option value="kitchen">Παρασκευαστήριο</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="fg" id="storeField">
+      <label>Κατάστημα</label>
+      <select id="mUserStore"></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('mUser')">Άκυρο</button>
+      <button class="btn-save" id="mUserSaveBtn" onclick="saveUser()">Αποστολή Πρόσκλησης</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Modal -->
+<div class="overlay" id="mStock">
+  <div class="modal">
+    <div class="modal-title">Νέα Παρτίδα Stock</div>
+    <div class="modal-msg" id="mStockMsg"></div>
+    <div class="fg"><label>Κατάστημα</label><select id="mStockStore"></select></div>
+    <div class="fg"><label>Προϊόν</label><select id="mStockProduct"></select></div>
+    <div class="fg"><label>Ημ. Παραλαβής</label><input type="date" id="mStockRec"/></div>
+    <div class="fg"><label>Ημ. Λήξης</label><input type="date" id="mStockExp"/></div>
+    <div class="fg"><label>Ποσότητα</label><input type="number" id="mStockQty" min="1"/></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('mStock')">Άκυρο</button>
+      <button class="btn-save" onclick="saveStock()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="overlay" id="mSuccess">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:52px;margin-bottom:12px">✅</div>
+    <div class="modal-title" style="text-align:center" id="mSuccessTitle">Επιτυχία!</div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px" id="mSuccessText"></div>
+    <button class="btn-save" onclick="closeModal('mSuccess')">OK</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SURL = 'https://slkgziugmtisawxeycmv.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsa2d6aXVnbXRpc2F3eGV5Y212Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDUxNTUsImV4cCI6MjA4ODI4MTE1NX0.LVfCr7iF4ypR5vDsUzCZ32iKfbk0CVVS6fKWDBCH62k';
+const db = window.supabase.createClient(SURL, SKEY);
+
+let USER = null, STORE = null, PRODUCTS = [], STORES = [];
+let orderItems = {};
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+document.getElementById('lPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('lEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('lPass').focus()});
+
+async function doLogin(){
+  const email=document.getElementById('lEmail').value.trim();
+  const pass=document.getElementById('lPass').value;
+  const btn=document.getElementById('lBtn');
+  const err=document.getElementById('lerr');
+  if(!email||!pass){showLErr('Συμπλήρωσε email και κωδικό.');return;}
+  btn.disabled=true; btn.textContent='...'; err.classList.remove('show');
+  const r=await db.auth.signInWithPassword({email,password:pass});
+  if(r.error){showLErr('Λάθος email ή κωδικός.');btn.disabled=false;btn.textContent='ΣΥΝΔΕΣΗ';return;}
+  await loadUser(r.data.user.id);
+}
+
+function showLErr(msg){
+  const el=document.getElementById('lerr');
+  el.textContent='❌ '+msg; el.classList.add('show');
+  document.getElementById('lBtn').disabled=false;
+  document.getElementById('lBtn').textContent='ΣΥΝΔΕΣΗ';
+}
+
+async function loadUser(uid){
+  const r=await db.from('χρήστες').select('*,καταστήματα(*)').eq('auth_user_id',uid).single();
+  if(!r.data){showLErr('Ο χρήστης δεν βρέθηκε στο σύστημα.');return;}
+  USER=r.data; STORE=r.data['καταστήματα'];
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  document.getElementById('hUser').textContent=USER['όνομα']||USER['email'];
+  document.getElementById('hInfo').textContent=STORE?('📍 '+STORE['όνομα']):'';
+  buildSidebar();
+}
+
+async function doLogout(){
+  await db.auth.signOut();
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════
+// AUTO LOGIN CHECK
+// ═══════════════════════════════════════════════
+(async()=>{
+  const s=await db.auth.getSession();
+  if(s.data&&s.data.session) await loadUser(s.data.session.user.id);
+})();
+
+// ═══════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════
+function buildSidebar(){
+  const role=USER['ρόλος'];
+  let html='<div class="s-title">Μενού</div>';
+  if(role==='admin'){
+    html+=nav('products','🛍️','Προϊόντα');
+    html+=nav('stores','🏪','Καταστήματα');
+    html+=nav('users','👥','Χρήστες');
+    html+=nav('stock','📦','Stock');
+  }
+  if(role==='store'){
+    html+=nav('order','📋','Παραγγελία Αύριο');
+    html+=nav('extra','⚡','Συμπληρωματική');
+    html+=nav('mystock','📦','Απόθεμα');
+    html+=nav('history','📜','Ιστορικό');
+  }
+  if(role==='kitchen'){
+    html+=nav('production','🏭','Παραγωγή');
+    html+=nav('packing','📦','Συσκευασία');
+  }
+  document.getElementById('sidebar').innerHTML=html;
+  // Load first tab
+  if(role==='admin') showTab('products');
+  if(role==='store') showTab('order');
+  if(role==='kitchen') showTab('production');
+}
+
+function nav(id,icon,label){
+  return `<div class="nav" id="nav-${id}" onclick="showTab('${id}')"><span class="nav-icon">${icon}</span>${label}</div>`;
+}
+
+function showTab(tab){
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  const el=document.getElementById('nav-'+tab);
+  if(el) el.classList.add('active');
+  const fn={'products':renderProducts,'stores':renderStores,'users':renderUsers,'stock':renderStockAdmin,
+             'order':()=>renderOrder(false),'extra':()=>renderOrder(true),
+             'mystock':renderMyStock,'history':renderHistory,
+             'production':renderProduction,'packing':renderPacking};
+  if(fn[tab]) fn[tab]();
+  // Remove order bar if exists
+  const ob=document.getElementById('orderBar');
+  if(ob&&tab!=='order'&&tab!=='extra') ob.remove();
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN — PRODUCTS
+// ═══════════════════════════════════════════════
+async function renderProducts(){
+  const m=document.getElementById('main');
+  m.innerHTML='<div class="loading">Φόρτωση...</div>';
+  const [p,s,u,v]=await Promise.all([
+    db.from('προϊόντα').select('id',{count:'exact',head:true}),
+    db.from('καταστήματα').select('id',{count:'exact',head:true}),
+    db.from('χρήστες').select('id',{count:'exact',head:true}),
+    db.from('πωλήσεις').select('id',{count:'exact',head:true})
+  ]);
+  const r=await db.from('προϊόντα').select('*').order('κατηγορία').order('όνομα');
+  PRODUCTS=r.data||[];
+  let html=`<div class="page-title">Προϊόντα</div><div class="page-sub">Διαχείριση καταλόγου</div>`;
+  html+=`<div class="stats">
+    <div class="stat"><div class="stat-n">${p.count||0}</div><div class="stat-l">Προϊόντα</div></div>
+    <div class="stat"><div class="stat-n">${s.count||0}</div><div class="stat-l">Καταστήματα</div></div>
+    <div class="stat"><div class="stat-n">${u.count||0}</div><div class="stat-l">Χρήστες</div></div>
+    <div class="stat"><div class="stat-n">${v.count||0}</div><div class="stat-l">Πωλήσεις</div></div>
+  </div>`;
+  html+=`<div class="card"><div class="card-head"><div class="card-head-title">ΚΑΤΑΛΟΓΟΣ</div><button class="btn-add" onclick="openProductModal()">+ Νέο</button></div>`;
+  html+=`<table><thead><tr><th>Όνομα</th><th>Κωδικός</th><th>Κατηγορία</th><th>Ημ.Ζωής</th><th>Κατάσταση</th><th></th></tr></thead><tbody>`;
+  PRODUCTS.forEach(p=>{
+    html+=`<tr><td><strong>${p['όνομα']}</strong></td><td><code>${p['κωδικός']}</code></td>
+    <td><span class="badge bn">${p['κατηγορία']}</span></td><td>${p['ημέρες_ζωής']} μέρες</td>
+    <td><span class="badge ${p['ενεργό']?'bg':'br'}">${p['ενεργό']?'Ενεργό':'Ανενεργό'}</span></td>
+    <td><button class="btn-sm be" onclick="editProduct(${p.id})">✏️</button></td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  m.innerHTML=html;
+}
+
+function openProductModal(){
+  document.getElementById('mProductId').value='';
+  document.getElementById('mProductName').value='';
+  document.getElementById('mProductCode').value='';
+  document.getElementById('mProductDays').value='';
+  document.getElementById('mProductActive').value='true';
+  document.getElementById('mProductTitle').textContent='Νέο Προϊόν';
+  document.getElementById('mProductMsg').className='modal-msg';
+  document.getElementById('mProduct').classList.add('show');
+}
+
+function editProduct(id){
+  const p=PRODUCTS.find(x=>x.id===id); if(!p) return;
+  document.getElementById('mProductId').value=p.id;
+  document.getElementById('mProductName').value=p['όνομα'];
+  document.getElementById('mProductCode').value=p['κωδικός'];
+  document.getElementById('mProductCat').value=p['κατηγορία'];
+  document.getElementById('mProductDays').value=p['ημέρες_ζωής'];
+  document.getElementById('mProductActive').value=String(p['ενεργό']);
+  document.getElementById('mProductTitle').textContent='Επεξεργασία';
+  document.getElementById('mProductMsg').className='modal-msg';
+  document.getElementById('mProduct').classList.add('show');
+}
+
+async function saveProduct(){
+  const id=document.getElementById('mProductId').value;
+  const data={'όνομα':document.getElementById('mProductName').value,'κωδικός':document.getElementById('mProductCode').value,
+    'κατηγορία':document.getElementById('mProductCat').value,'ημέρες_ζωής':parseInt(document.getElementById('mProductDays').value),
+    'ενεργό':document.getElementById('mProductActive').value==='true'};
+  if(id) await db.from('προϊόντα').update(data).eq('id',parseInt(id));
+  else await db.from('προϊόντα').insert(data);
+  closeModal('mProduct'); renderProducts();
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN — STORES
+// ═══════════════════════════════════════════════
+async function renderStores(){
+  const m=document.getElementById('main');
+  const r=await db.from('καταστήματα').select('*').order('όνομα');
+  STORES=r.data||[];
+  let html=`<div class="page-title">Καταστήματα</div><div class="page-sub">Διαχείριση καταστημάτων</div>`;
+  html+=`<div class="card"><div class="card-head"><div class="card-head-title">ΚΑΤΑΣΤΗΜΑΤΑ</div></div>`;
+  html+=`<table><thead><tr><th>Όνομα</th><th>Κωδικός</th><th>Κατάσταση</th></tr></thead><tbody>`;
+  STORES.forEach(s=>{
+    html+=`<tr><td><strong>${s['όνομα']}</strong></td><td><code>${s['κωδικός']}</code></td>
+    <td><span class="badge ${s['ενεργό']?'bg':'br'}">${s['ενεργό']?'Ενεργό':'Ανενεργό'}</span></td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  m.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN — USERS
+// ═══════════════════════════════════════════════
+async function renderUsers(){
+  const m=document.getElementById('main');
+  const r=await db.from('χρήστες').select('*,καταστήματα(όνομα)').order('ρόλος').order('όνομα');
+  let html=`<div class="page-title">Χρήστες</div><div class="page-sub">Διαχείριση ρόλων και πρόσβασης</div>`;
+  html+=`<div class="card"><div class="card-head"><div class="card-head-title">ΧΡΗΣΤΕΣ ΣΥΣΤΗΜΑΤΟΣ</div><button class="btn-add" onclick="openUserModal()">+ Νέος Χρήστης</button></div>`;
+  html+=`<table><thead><tr><th>Όνομα</th><th>Email</th><th>Ρόλος</th><th>Κατάστημα</th><th>Κατάσταση</th></tr></thead><tbody>`;
+  (r.data||[]).forEach(u=>{
+    const rc={'admin':'bn','kitchen':'bo','store':'bg'}[u['ρόλος']]||'bn';
+    html+=`<tr><td><strong>${u['όνομα']}</strong></td><td>${u['email']}</td>
+    <td><span class="badge ${rc}">${u['ρόλος'].toUpperCase()}</span></td>
+    <td>${u['καταστήματα']?u['καταστήματα']['όνομα']:'-'}</td>
+    <td><span class="badge ${u['ενεργός']?'bg':'br'}">${u['ενεργός']?'Ενεργός':'Ανενεργός'}</span></td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  m.innerHTML=html;
+}
+
+async function openUserModal(){
+  if(STORES.length===0){const r=await db.from('καταστήματα').select('*');STORES=r.data||[];}
+  document.getElementById('mUserStore').innerHTML=STORES.map(s=>`<option value="${s.id}">${s['όνομα']}</option>`).join('');
+  document.getElementById('mUserName').value='';
+  document.getElementById('mUserEmail').value='';
+  document.getElementById('mUserRole').value='store';
+  document.getElementById('mUserMsg').className='modal-msg';
+  document.getElementById('mUserSaveBtn').disabled=false;
+  document.getElementById('mUserSaveBtn').textContent='Αποστολή Πρόσκλησης';
+  toggleStoreField();
+  document.getElementById('mUser').classList.add('show');
+}
+
+function toggleStoreField(){
+  const role=document.getElementById('mUserRole').value;
+  document.getElementById('storeField').style.display=role==='store'?'block':'none';
+}
+
+async function saveUser(){
+  const name=document.getElementById('mUserName').value.trim();
+  const email=document.getElementById('mUserEmail').value.trim();
+  const role=document.getElementById('mUserRole').value;
+  const storeId=role==='store'?parseInt(document.getElementById('mUserStore').value):null;
+  const btn=document.getElementById('mUserSaveBtn');
+  const msg=document.getElementById('mUserMsg');
+  if(!name||!email){msg.textContent='Συμπλήρωσε όνομα και email.';msg.className='modal-msg err';return;}
+  btn.disabled=true; btn.textContent='...';
+
+  // Στείλε invite email μέσω Supabase
+  const r=await db.auth.signInWithOtp({
+    email,
+    options:{emailRedirectTo:'https://stefanosaxiotis-stack.github.io/stefanos/erp.html'}
+  });
+
+  // Προσθήκη στον πίνακα χρήστες
+  await db.from('χρήστες').upsert({
+    'όνομα':name, 'email':email, 'ρόλος':role,
+    'εταιρία_id':1, 'κατάστημα_id':storeId, 'ενεργός':true
+  },{onConflict:'email'});
+
+  if(r.error){msg.textContent='Σφάλμα: '+r.error.message;msg.className='modal-msg err';btn.disabled=false;btn.textContent='Αποστολή Πρόσκλησης';return;}
+  msg.textContent='✅ Εστάλη email στον '+email+' για είσοδο!';
+  msg.className='modal-msg ok';
+  btn.textContent='✅ Εστάλη!';
+  renderUsers();
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN — STOCK
+// ═══════════════════════════════════════════════
+async function renderStockAdmin(){
+  const m=document.getElementById('main');
+  const r=await db.from('παρτιδες_αποθέματος').select('*,προϊόντα(όνομα),καταστήματα(όνομα)').order('ημερομηνία_λήξης');
+  const today=new Date().toISOString().split('T')[0];
+  let html=`<div class="page-title">Stock</div><div class="page-sub">Παρτίδες αποθέματος</div>`;
+  html+=`<div class="card"><div class="card-head"><div class="card-head-title">ΠΑΡΤΙΔΕΣ</div><button class="btn-add" onclick="openStockModal()">+ Νέα Παρτίδα</button></div>`;
+  html+=`<table><thead><tr><th>Κατάστημα</th><th>Προϊόν</th><th>Λήξη</th><th>Υπόλοιπο</th><th>Κατάσταση</th></tr></thead><tbody>`;
+  const data=r.data||[];
+  if(data.length===0){html+=`<tr><td colspan="5" class="empty">Δεν υπάρχουν παρτίδες</td></tr>`;}
+  else data.forEach(s=>{
+    const exp=s['ημερομηνία_λήξης'];
+    const st=exp<=today?'br':exp===new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0]?'bo':'bg';
+    html+=`<tr><td>${s['καταστήματα']['όνομα']}</td><td><strong>${s['προϊόντα']['όνομα']}</strong></td>
+    <td><span class="badge ${st}">${exp}</span></td><td><strong>${s['υπόλοιπο']}</strong></td>
+    <td><span class="badge ${st}">${exp<=today?'Ληγμένο':s['υπόλοιπο']<=2?'Χαμηλό':'OK'}</span></td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  m.innerHTML=html;
+}
+
+async function openStockModal(){
+  if(STORES.length===0){const r=await db.from('καταστήματα').select('*');STORES=r.data||[];}
+  if(PRODUCTS.length===0){const r=await db.from('προϊόντα').select('*').eq('ενεργό',true);PRODUCTS=r.data||[];}
+  document.getElementById('mStockStore').innerHTML=STORES.map(s=>`<option value="${s.id}">${s['όνομα']}</option>`).join('');
+  document.getElementById('mStockProduct').innerHTML=PRODUCTS.map(p=>`<option value="${p.id}">${p['όνομα']}</option>`).join('');
+  document.getElementById('mStockRec').value=new Date().toISOString().split('T')[0];
+  document.getElementById('mStockExp').value='';
+  document.getElementById('mStockQty').value='';
+  document.getElementById('mStockMsg').className='modal-msg';
+  document.getElementById('mStock').classList.add('show');
+}
+
+async function saveStock(){
+  const qty=parseInt(document.getElementById('mStockQty').value);
+  await db.from('παρτιδες_αποθέματος').insert({
+    'κατάστημα_id':parseInt(document.getElementById('mStockStore').value),
+    'προϊόν_id':parseInt(document.getElementById('mStockProduct').value),
+    'ημερομηνία_παραλαβής':document.getElementById('mStockRec').value,
+    'ημερομηνία_λήξης':document.getElementById('mStockExp').value,
+    'ποσότητα':qty,'υπόλοιπο':qty
+  });
+  closeModal('mStock'); renderStockAdmin();
+}
+
+// ═══════════════════════════════════════════════
+// STORE — ORDER
+// ═══════════════════════════════════════════════
+async function renderOrder(isExtra){
+  const m=document.getElementById('main');
+  m.innerHTML='<div class="loading">Φόρτωση...</div>';
+  const now=new Date();
+  const cutH=isExtra?12:21, cutM=30;
+  const isPast=now.getHours()>cutH||(now.getHours()===cutH&&now.getMinutes()>=cutM);
+  const delivery=new Date(); delivery.setDate(delivery.getDate()+(isExtra?0:1));
+  const delivISO=delivery.toISOString().split('T')[0];
+  const delivStr=delivery.toLocaleDateString('el-GR',{weekday:'long',day:'numeric',month:'long'});
+
+  const [prodR,stockR,salesR]=await Promise.all([
+    db.from('προϊόντα').select('*').eq('ενεργό',true).order('κατηγορία').order('όνομα'),
+    db.from('παρτιδες_αποθέματος').select('προϊόν_id,υπόλοιπο,ημερομηνία_λήξης').eq('κατάστημα_id',STORE.id).gt('υπόλοιπο',0),
+    db.from('πωλήσεις').select('προϊόν_id,ποσότητα').eq('κατάστημα_id',STORE.id).gte('ημερομηνία',new Date(Date.now()-14*864e5).toISOString().split('T')[0])
+  ]);
+  PRODUCTS=prodR.data||[];
+
+  const stockMap={};
+  (stockR.data||[]).forEach(s=>{
+    if(s['ημερομηνία_λήξης']>delivISO){
+      if(!stockMap[s['προϊόν_id']]) stockMap[s['προϊόν_id']]=0;
+      stockMap[s['προϊόν_id']]+=s['υπόλοιπο'];
+    }
+  });
+  const salesMap={};
+  (salesR.data||[]).forEach(s=>{salesMap[s['προϊόν_id']]=(salesMap[s['προϊόν_id']]||0)+s['ποσότητα']});
+
+  const cats={};
+  PRODUCTS.forEach(p=>{const c=p['κατηγορία']||'Άλλα';if(!cats[c])cats[c]=[];cats[c].push(p)});
+
+  let html=`<div class="page-title">${isExtra?'⚡ Συμπληρωματική':'📋 Παραγγελία Αύριο'}</div>`;
+  html+=`<div class="cutoff"><div><div class="cutoff-label">${isExtra?'ΣΥΜΠΛΗΡΩΜΑΤΙΚΗ':'ΚΑΝΟΝΙΚΗ ΠΑΡΑΓΓΕΛΙΑ'}</div><div style="font-size:12px;opacity:0.8;margin-top:2px">Παράδοση: ${delivStr}</div></div><div><div style="font-size:10px;opacity:0.7">CUTOFF</div><div class="cutoff-time">${isExtra?'12:30':'21:30'}</div></div></div>`;
+
+  if(isPast){
+    html+=`<div style="background:#fdf0ef;border:1px solid #f5c6c2;color:var(--red);border-radius:10px;padding:14px 18px;text-align:center;font-weight:600">⚠️ Η ώρα υποβολής έχει παρέλθει</div>`;
+  } else {
+    orderItems={};
+    Object.keys(cats).sort().forEach(cat=>{
+      html+=`<div class="cat-title">${cat}</div><div class="prod-grid">`;
+      cats[cat].forEach(p=>{
+        const stk=stockMap[p.id]||0;
+        const avg=salesMap[p.id]?Math.ceil(salesMap[p.id]/14):0;
+        const sug=Math.max(0,avg-stk);
+        html+=`<div class="prod-card">
+          <div><div class="prod-name">${p['όνομα']}</div><div class="prod-meta">${p['κωδικός']}</div>
+          <div class="prod-sug">📦 Stock: ${stk} &nbsp;·&nbsp; Πρότεινόμενη: <strong>${sug}</strong></div></div>
+          <div class="qty-wrap">
+            <button class="qty-btn" onclick="chQty(${p.id},-1)">−</button>
+            <input class="qty-in" type="number" id="q${p.id}" value="0" min="0" onchange="stQty(${p.id},this.value)"/>
+            <button class="qty-btn" onclick="chQty(${p.id},1)">+</button>
+          </div></div>`;
+      });
+      html+=`</div>`;
+    });
+  }
+  m.innerHTML=html;
+
+  if(!isPast){
+    let bar=document.getElementById('orderBar');
+    if(!bar){bar=document.createElement('div');bar.id='orderBar';bar.className='order-bar';document.querySelector('.layout').appendChild(bar);}
+    bar.innerHTML=`<div style="font-size:13px;color:#666">Σύνολο: <strong id="totalQ" style="color:var(--navy);font-size:17px">0</strong> τεμάχια</div><button class="btn-submit" onclick="submitOrder(${isExtra})">ΥΠΟΒΟΛΗ</button>`;
+  }
+}
+
+function chQty(id,d){const i=document.getElementById('q'+id);const v=Math.max(0,(parseInt(i.value)||0)+d);i.value=v;orderItems[id]=v;updTotal();}
+function stQty(id,v){orderItems[id]=Math.max(0,parseInt(v)||0);updTotal();}
+function updTotal(){const t=Object.values(orderItems).reduce((a,b)=>a+(b||0),0);const el=document.getElementById('totalQ');if(el)el.textContent=t;}
+
+async function submitOrder(isExtra){
+  const items=Object.entries(orderItems).filter(e=>e[1]>0);
+  if(items.length===0){alert('Δεν έχεις επιλέξει τεμάχια!');return;}
+  const btn=document.querySelector('#orderBar .btn-submit');
+  btn.disabled=true; btn.textContent='...';
+  const delivery=new Date(); delivery.setDate(delivery.getDate()+(isExtra?0:1));
+  const oR=await db.from('παραγγελίες').insert({'κατάστημα_id':STORE.id,'ημερομηνία_παράδοσης':delivery.toISOString().split('T')[0],'τύπος':isExtra?'συμπληρωματική':'κανονική','κατάσταση':'υποβλήθηκε'}).select('id').single();
+  if(oR.error){alert('Σφάλμα: '+oR.error.message);btn.disabled=false;return;}
+  await db.from('γραμμές_παραγγελίας').insert(items.map(e=>({'παραγγελία_id':oR.data.id,'προϊόν_id':parseInt(e[0]),'ποσότητα_ζητήθηκε':e[1],'ποσότητα_στάλθηκε':0,'είναι_συμπληρωματική':isExtra})));
+  orderItems={};
+  const total=items.reduce((a,e)=>a+e[1],0);
+  document.getElementById('mSuccessTitle').textContent='Παραγγελία Υποβλήθηκε!';
+  document.getElementById('mSuccessText').textContent=total+' τεμάχια για '+delivery.toLocaleDateString('el-GR');
+  document.getElementById('mSuccess').classList.add('show');
+  document.getElementById('orderBar').remove();
+}
+
+// ═══════════════════════════════════════════════
+// STORE — MY STOCK
+// ═══════════════════════════════════════════════
+async function renderMyStock(){
+  const m=document.getElementById('main');
+  const r=await db.from('παρτιδες_αποθέματος').select('*,προϊόντα(όνομα,κατηγορία)').eq('κατάστημα_id',STORE.id).gt('υπόλοιπο',0).order('ημερομηνία_λήξης');
+  const today=new Date().toISOString().split('T')[0];
+  const tom=new Date(); tom.setDate(tom.getDate()+1); const tomStr=tom.toISOString().split('T')[0];
+  let html=`<div class="page-title">Απόθεμα & Λήξεις</div><div class="page-sub">${STORE['όνομα']}</div>`;
+  html+=`<div class="card"><div class="card-head"><div class="card-head-title">ΠΑΡΤΙΔΕΣ STOCK</div></div>`;
+  html+=`<table><thead><tr><th>Προϊόν</th><th>Κατηγορία</th><th>Λήξη</th><th>Υπόλοιπο</th><th>Κατάσταση</th></tr></thead><tbody>`;
+  const data=r.data||[];
+  if(!data.length) html+=`<tr><td colspan="5" class="empty">Δεν υπάρχει stock</td></tr>`;
+  else data.forEach(s=>{
+    const exp=s['ημερομηνία_λήξης'];
+    const st=exp<=today?'br':exp===tomStr?'bo':'bg';
+    const stTxt=exp<=today?'🔴 Ληγμένο':exp===tomStr?'🟠 Λήγει αύριο':'🟢 OK';
+    html+=`<tr><td><strong>${s['προϊόντα']['όνομα']}</strong></td><td>${s['προϊόντα']['κατηγορία']}</td>
+    <td><span class="badge ${st}">${exp}</span></td><td><strong style="font-size:16px">${s['υπόλοιπο']}</strong></td>
+    <td>${stTxt}</td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  m.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════
+// STORE — HISTORY
+// ═══════════════════════════════════════════════
+async function renderHistory(){
+  const m=document.getElementById('main');
+  const r=await db.from('παραγγελίες').select('*,γραμμές_παραγγελίας(ποσότητα_ζητήθηκε,ποσότητα_στάλθηκε,προϊόντα(όνομα))').eq('κατάστημα_id',STORE.id).order('created_at',{ascending:false}).limit(20);
+  let html=`<div class="page-title">Ιστορικό</div><div class="page-sub">Τελευταίες 20 παραγγελίες</div>`;
+  const data=r.data||[];
+  if(!data.length) html+=`<div class="card"><div class="empty">Δεν υπάρχουν παραγγελίες</div></div>`;
+  else data.forEach(o=>{
+    html+=`<div class="card" style="margin-bottom:12px"><div class="card-head">
+    <div class="card-head-title">📅 ${o['ημερομηνία_παράδοσης']}</div>
+    <span class="badge ${o['τύπος']==='συμπληρωματική'?'bo':'bn'}">${o['τύπος'].toUpperCase()}</span></div>
+    <div style="padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">`;
+    (o['γραμμές_παραγγελίας']||[]).forEach(l=>{
+      html+=`<div style="font-size:12px;padding:6px 10px;background:#f8f6f8;border-radius:6px">${l['προϊόντα']['όνομα']}: <strong>${l['ποσότητα_ζητήθηκε']}</strong>${l['ποσότητα_στάλθηκε']>0?' → '+l['ποσότητα_στάλθηκε']:''}</div>`;
+    });
+    html+=`</div></div>`;
+  });
+  m.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════
+// KITCHEN — PRODUCTION
+// ═══════════════════════════════════════════════
+let kitchenDate=new Date(); kitchenDate.setDate(kitchenDate.getDate()+1);
+
+async function renderProduction(){
+  const m=document.getElementById('main');
+  m.innerHTML='<div class="loading">Φόρτωση...</div>';
+  const ds=kitchenDate.toISOString().split('T')[0];
+  const r=await db.from('παραγγελίες').select('*,καταστήματα(όνομα),γραμμές_παραγγελίας(προϊόν_id,ποσότητα_ζητήθηκε,προϊόντα(όνομα,κατηγορία))').eq('ημερομηνία_παράδοσης',ds).in('κατάσταση',['υποβλήθηκε','σε_εξέλιξη']);
+  const orders=r.data||[];
+  const totals={};
+  orders.forEach(o=>(o['γραμμές_παραγγελίας']||[]).forEach(l=>{
+    const p=l['προϊόν_id'];
+    if(!totals[p]) totals[p]={name:l['προϊόντα']['όνομα'],cat:l['προϊόντα']['κατηγορία'],qty:0};
+    totals[p].qty+=l['ποσότητα_ζητήθηκε'];
+  }));
+  const total=Object.values(totals).reduce((a,b)=>a+b.qty,0);
+  let html=`<div class="page-title">Παραγωγή</div>`;
+  html+=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px"><label style="font-size:13px;font-weight:600;color:var(--navy)">Παράδοση:</label><input type="date" value="${ds}" onchange="kitchenDate=new Date(this.value);renderProduction()" style="padding:7px 12px;border:2px solid var(--border);border-radius:7px;font-family:'Barlow',sans-serif;font-size:13px;outline:none"/></div>`;
+  if(!orders.length){m.innerHTML=html+`<div class="card"><div class="empty">Δεν υπάρχουν παραγγελίες</div></div>`;return;}
+  html+=`<div class="stats"><div class="stat"><div class="stat-n">${orders.length}</div><div class="stat-l">Παραγγελίες</div></div><div class="stat"><div class="stat-n">${Object.keys(totals).length}</div><div class="stat-l">Προϊόντα</div></div><div class="stat"><div class="stat-n">${total}</div><div class="stat-l">Τεμάχια</div></div></div>`;
+  const byCat={};
+  Object.values(totals).forEach(p=>{if(!byCat[p.cat])byCat[p.cat]=[];byCat[p.cat].push(p)});
+  html+=`<div class="card"><div class="card-head"><div class="card-head-title">ΣΥΓΚΕΝΤΡΩΤΙΚΗ ΠΑΡΑΓΩΓΗ</div></div><table><thead><tr><th>Κατηγορία</th><th>Προϊόν</th><th>Ποσότητα</th></tr></thead><tbody>`;
+  Object.keys(byCat).sort().forEach(cat=>{
+    const ct=byCat[cat].reduce((a,b)=>a+b.qty,0);
+    byCat[cat].sort((a,b)=>a.name.localeCompare(b.name)).forEach((p,i)=>{
+      html+=`<tr><td>${i===0?`<span class="badge bn">${cat}</span>`:''}</td><td><strong>${p.name}</strong></td><td><strong style="font-size:16px;color:var(--navy)">${p.qty}</strong></td></tr>`;
+    });
+    html+=`<tr class="total-row"><td colspan="2">Σύνολο ${cat}</td><td>${ct}</td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  m.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════
+// KITCHEN — PACKING
+// ═══════════════════════════════════════════════
+let sentMap={};
+async function renderPacking(){
+  const m=document.getElementById('main');
+  m.innerHTML='<div class="loading">Φόρτωση...</div>';
+  const ds=kitchenDate.toISOString().split('T')[0];
+  const r=await db.from('παραγγελίες').select('id,κατάστημα_id,τύπος,κατάσταση,καταστήματα(όνομα),γραμμές_παραγγελίας(id,προϊόν_id,ποσότητα_ζητήθηκε,ποσότητα_στάλθηκε,προϊόντα(όνομα,ημέρες_ζωής))').eq('ημερομηνία_παράδοσης',ds).in('κατάσταση',['υποβλήθηκε','σε_εξέλιξη']).order('κατάστημα_id');
+  const orders=r.data||[];
+  let html=`<div class="page-title">Συσκευασία & Αποστολή</div>`;
+  html+=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px"><label style="font-size:13px;font-weight:600;color:var(--navy)">Παράδοση:</label><input type="date" value="${ds}" onchange="kitchenDate=new Date(this.value);renderPacking()" style="padding:7px 12px;border:2px solid var(--border);border-radius:7px;font-family:'Barlow',sans-serif;font-size:13px;outline:none"/></div>`;
+  if(!orders.length){m.innerHTML=html+`<div class="card"><div class="empty">Δεν υπάρχουν παραγγελίες</div></div>`;return;}
+  const byStore={};
+  orders.forEach(o=>{const sn=o['καταστήματα']['όνομα'];if(!byStore[sn])byStore[sn]=[];byStore[sn].push(o)});
+  Object.keys(byStore).forEach(sname=>{
+    html+=`<div class="store-hdr">🏪 ${sname}</div>`;
+    byStore[sname].forEach(order=>{
+      html+=`<div class="card" style="margin-bottom:10px"><div class="card-head"><div class="card-head-title">${order['τύπος']==='συμπληρωματική'?'⚡ Συμπληρωματική':'📋 Κανονική'}</div><button class="btn-submit" style="padding:7px 14px;font-size:12px" onclick="completeOrder(${order.id},'${sname}')">✅ Ολοκλήρωση</button></div>`;
+      html+=`<table><thead><tr><th>Προϊόν</th><th>Ζητήθηκαν</th><th>Στέλνονται</th><th>Λήξη</th></tr></thead><tbody>`;
+      (order['γραμμές_παραγγελίας']||[]).forEach(l=>{
+        const defExp=new Date(ds); defExp.setDate(defExp.getDate()+(l['προϊόντα']['ημέρες_ζωής']||3)-1);
+        const expStr=defExp.toISOString().split('T')[0];
+        const key=`${order.id}_${l.id}`;
+        const sv=sentMap[key]!==undefined?sentMap[key]:l['ποσότητα_ζητήθηκε'];
+        html+=`<tr><td><strong>${l['προϊόντα']['όνομα']}</strong></td><td><span class="badge bn">${l['ποσότητα_ζητήθηκε']}</span></td>
+        <td><div class="qty-wrap"><button class="qty-btn" onclick="chSent('${key}',-1)">−</button><input class="qty-in" id="s${key}" value="${sv}" min="0" onchange="stSent('${key}',this.value)"/><button class="qty-btn" onclick="chSent('${key}',1)">+</button></div></td>
+        <td><input type="date" id="e${key}" value="${expStr}" style="border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:11px"/></td></tr>`;
+      });
+      html+=`</tbody></table></div>`;
+    });
+  });
+  m.innerHTML=html;
+}
+
+function chSent(key,d){const i=document.getElementById('s'+key);const v=Math.max(0,(parseInt(i.value)||0)+d);i.value=v;sentMap[key]=v;}
+function stSent(key,v){sentMap[key]=Math.max(0,parseInt(v)||0);}
+
+async function completeOrder(orderId,sname){
+  if(!confirm('Ολοκλήρωση αποστολής για '+sname+';')) return;
+  const ds=kitchenDate.toISOString().split('T')[0];
+  const lR=await db.from('γραμμές_παραγγελίας').select('id,προϊόν_id,ποσότητα_ζητήθηκε,προϊόντα(ημέρες_ζωής)').eq('παραγγελία_id',orderId);
+  const oR=await db.from('παραγγελίες').select('κατάστημα_id').eq('id',orderId).single();
+  for(const l of lR.data||[]){
+    const key=`${orderId}_${l.id}`;
+    const sent=sentMap[key]!==undefined?sentMap[key]:l['ποσότητα_ζητήθηκε'];
+    const expI=document.getElementById('e'+key);
+    let exp=expI?expI.value:'';
+    if(!exp){const d=new Date(ds);d.setDate(d.getDate()+(l['προϊόντα']['ημέρες_ζωής']||3)-1);exp=d.toISOString().split('T')[0];}
+    await db.from('γραμμές_παραγγελίας').update({'ποσότητα_στάλθηκε':sent}).eq('id',l.id);
+    if(sent>0) await db.from('παρτιδες_αποθέματος').insert({'κατάστημα_id':oR.data['κατάστημα_id'],'προϊόν_id':l['προϊόν_id'],'ημερομηνία_παραλαβής':ds,'ημερομηνία_λήξης':exp,'ποσότητα':sent,'υπόλοιπο':sent,'παραγγελία_id':orderId});
+  }
+  await db.from('παραγγελίες').update({'κατάσταση':'ολοκληρώθηκε'}).eq('id',orderId);
+  document.getElementById('mSuccessTitle').textContent='Αποστολή Ολοκληρώθηκε!';
+  document.getElementById('mSuccessText').textContent='Οι παρτίδες stock ενημερώθηκαν για '+sname;
+  document.getElementById('mSuccess').classList.add('show');
+  renderPacking();
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function closeModal(id){
+  document.getElementById(id).classList.remove('show');
+}
+document.querySelectorAll('.overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show')});
+});
+</script>
+</body>
+</html>
