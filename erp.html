@@ -125,6 +125,24 @@
 </head>
 <body>
 
+<!-- ═══ RESET ═══ -->
+<div id="resetScreen" style="display:none;min-height:100vh;background:var(--navy);align-items:center;justify-content:center;">
+  <div class="login-card">
+    <div style="background:var(--navy);padding:36px 40px 28px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:42px;letter-spacing:2px;color:var(--pink);text-transform:uppercase">Fresh Mail</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:4px;color:rgba(242,196,206,0.6);text-transform:uppercase;margin-top:4px">Coffee Roasters</div>
+    </div>
+    <div style="padding:32px 40px 40px;background:var(--white)">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--navy);text-transform:uppercase;margin-bottom:20px">Ορισμός Κωδικού</div>
+      <div id="resetMsg" style="font-size:13px;margin-bottom:16px;min-height:20px"></div>
+      <div style="margin-bottom:16px"><label style="display:block;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:8px;opacity:0.7">Νέος Κωδικός</label><input type="password" id="resetPass1" placeholder="Τουλάχιστον 6 χαρακτήρες" style="width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:10px;font-family:'Barlow',sans-serif;font-size:15px;color:var(--navy);background:var(--grey);outline:none"/></div>
+      <div style="margin-bottom:20px"><label style="display:block;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:8px;opacity:0.7">Επιβεβαίωση</label><input type="password" id="resetPass2" placeholder="Ίδιος κωδικός ξανά" style="width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:10px;font-family:'Barlow',sans-serif;font-size:15px;color:var(--navy);background:var(--grey);outline:none"/></div>
+      <button id="resetBtn" onclick="doReset()" style="width:100%;padding:15px;background:var(--navy);color:var(--pink);border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:3px;text-transform:uppercase;cursor:pointer">ΑΠΟΘΗΚΕΥΣΗ</button>
+    </div>
+    <div style="text-align:center;padding:0 40px 28px;font-size:11px;color:#bbb;background:var(--white)">© 2026 Fresh Mail Coffee Roasters</div>
+  </div>
+</div>
+
 <!-- ═══ LOGIN ═══ -->
 <div id="loginScreen">
   <div class="bg"><span></span><span></span></div>
@@ -139,7 +157,23 @@
       <div class="lerr" id="lerr"></div>
       <div class="lf"><label>Email</label><input type="email" id="lEmail" placeholder="user@freshmail.gr" autocomplete="email"/></div>
       <div class="lf"><label>Κωδικός</label><input type="password" id="lPass" placeholder="••••••••" autocomplete="current-password"/></div>
+      <div id="lMsg" style="font-size:13px;margin-bottom:12px;min-height:16px"></div>
       <button class="btn-login" id="lBtn" onclick="doLogin()">ΣΥΝΔΕΣΗ</button>
+      <div style="text-align:center;margin-top:14px"><button onclick="showForgot()" style="background:none;border:none;color:var(--navy);font-size:13px;cursor:pointer;opacity:0.6;text-decoration:underline">Ξέχασα τον κωδικό μου</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div id="forgotOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;">
+  <div style="background:var(--white);border-radius:16px;width:420px;max-width:95vw;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--navy);margin-bottom:8px">Ξέχασα τον Κωδικό</div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px">Βάλε το email σου και θα σου στείλουμε link για νέο κωδικό.</div>
+    <div style="margin-bottom:16px"><label style="display:block;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:8px;opacity:0.7">Email</label><input type="email" id="forgotEmail" placeholder="user@freshmail.gr" style="width:100%;padding:12px 16px;border:2px solid var(--border);border-radius:10px;font-family:'Barlow',sans-serif;font-size:15px;color:var(--navy);background:var(--grey);outline:none"/></div>
+    <div id="forgotMsg" style="font-size:13px;margin-bottom:14px;min-height:16px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="hideForgot()" style="background:var(--grey);color:#555;border:none;padding:10px 20px;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:600;cursor:pointer">Άκυρο</button>
+      <button id="forgotBtn" onclick="sendForgot()" style="background:var(--navy);color:var(--pink);border:none;padding:10px 20px;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;cursor:pointer">ΑΠΟΣΤΟΛΗ</button>
     </div>
   </div>
 </div>
@@ -288,12 +322,80 @@ async function doLogout(){
 }
 
 // ═══════════════════════════════════════════════
-// AUTO LOGIN CHECK
+// AUTO LOGIN CHECK + RESET PASSWORD DETECTION
 // ═══════════════════════════════════════════════
 (async()=>{
+  // Έλεγξε αν έχουμε reset token στο URL hash
+  const hash=window.location.hash.substring(1);
+  const params={};
+  hash.split('&').forEach(p=>{const[k,v]=p.split('='); if(k&&v) params[k]=decodeURIComponent(v);});
+
+  if(params['type']==='recovery' && params['access_token']){
+    // Έχουμε reset token — δείξε φόρμα αλλαγής κωδικού
+    await db.auth.setSession({access_token:params['access_token'], refresh_token:params['refresh_token']||''});
+    showResetScreen();
+    return;
+  }
+
   const s=await db.auth.getSession();
   if(s.data&&s.data.session) await loadUser(s.data.session.user.id);
 })();
+
+function showResetScreen(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('resetScreen').style.display='flex';
+}
+
+function showForgot(){
+  document.getElementById('forgotOverlay').style.display='flex';
+  document.getElementById('forgotEmail').value=document.getElementById('lEmail').value||'';
+  document.getElementById('forgotMsg').textContent='';
+}
+
+function hideForgot(){
+  document.getElementById('forgotOverlay').style.display='none';
+}
+
+async function sendForgot(){
+  const email=document.getElementById('forgotEmail').value.trim();
+  const btn=document.getElementById('forgotBtn');
+  const msg=document.getElementById('forgotMsg');
+  if(!email){msg.textContent='❌ Βάλε το email σου.';msg.style.color='var(--red)';return;}
+  btn.disabled=true; btn.textContent='...';
+  const r=await db.auth.resetPasswordForEmail(email,{
+    redirectTo:'https://stefanosaxiotis-stack.github.io/stefanos/erp.html'
+  });
+  if(r.error){
+    msg.textContent='❌ '+r.error.message; msg.style.color='var(--red)';
+    btn.disabled=false; btn.textContent='ΑΠΟΣΤΟΛΗ';
+  } else {
+    msg.textContent='✅ Έφτασε email! Πάτα το link για να ορίσεις νέο κωδικό.';
+    msg.style.color='var(--green)';
+    btn.textContent='ΕΣΤΕΙΛΑΜΕ ΤΟ LINK ✅';
+  }
+}
+
+async function doReset(){
+  const p1=document.getElementById('resetPass1').value;
+  const p2=document.getElementById('resetPass2').value;
+  const btn=document.getElementById('resetBtn');
+  const msg=document.getElementById('resetMsg');
+  if(!p1||p1.length<6){msg.textContent='❌ Τουλάχιστον 6 χαρακτήρες.';msg.style.color='var(--red)';return;}
+  if(p1!==p2){msg.textContent='❌ Οι κωδικοί δεν ταιριάζουν.';msg.style.color='var(--red)';return;}
+  btn.disabled=true; btn.textContent='...';
+  const r=await db.auth.updateUser({password:p1});
+  if(r.error){
+    msg.textContent='❌ '+r.error.message; msg.style.color='var(--red)';
+    btn.disabled=false; btn.textContent='ΑΠΟΘΗΚΕΥΣΗ';
+  } else {
+    msg.textContent='✅ Ο κωδικός άλλαξε! Μεταφορά...'; msg.style.color='var(--green)';
+    setTimeout(async()=>{
+      document.getElementById('resetScreen').style.display='none';
+      document.getElementById('loginScreen').style.display='flex';
+      await db.auth.signOut();
+    },2000);
+  }
+}
 
 // ═══════════════════════════════════════════════
 // SIDEBAR
