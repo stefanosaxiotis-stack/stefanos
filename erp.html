@@ -222,11 +222,13 @@
 <!-- User Modal -->
 <div class="overlay" id="mUser">
   <div class="modal">
-    <div class="modal-title">Νέος Χρήστης</div>
+    <div class="modal-title" id="mUserTitle">Νέος Χρήστης</div>
+    <input type="hidden" id="mUserAuthId"/>
     <div class="modal-msg" id="mUserMsg"></div>
-    <div class="fg"><label>Όνομα</label><input type="text" id="mUserName" placeholder="π.χ. Παγκράτι"/></div>
-    <div class="fg"><label>Email</label><input type="email" id="mUserEmail" placeholder="user@freshmail.gr"/></div>
-    <div class="fg"><label>Ρόλος</label>
+    <div class="fg" id="mUserNameField"><label>Όνομα</label><input type="text" id="mUserName" placeholder="π.χ. Παγκράτι"/></div>
+    <div class="fg" id="mUserEmailField"><label>Email</label><input type="email" id="mUserEmail" placeholder="user@freshmail.gr"/></div>
+    <div class="fg" id="mUserPassField"><label>Κωδικός</label><input type="password" id="mUserPass" placeholder="Τουλάχιστον 6 χαρακτήρες"/></div>
+    <div class="fg" id="mUserRoleField"><label>Ρόλος</label>
       <select id="mUserRole" onchange="toggleStoreField()">
         <option value="store">Κατάστημα</option>
         <option value="kitchen">Παρασκευαστήριο</option>
@@ -239,7 +241,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('mUser')">Άκυρο</button>
-      <button class="btn-save" id="mUserSaveBtn" onclick="saveUser()">Αποστολή Πρόσκλησης</button>
+      <button class="btn-save" id="mUserSaveBtn" onclick="saveUser()">ΑΠΟΘΗΚΕΥΣΗ</button>
     </div>
   </div>
 </div>
@@ -537,28 +539,41 @@ async function renderUsers(){
   const r=await db.from('χρήστες').select('*,καταστήματα(όνομα)').order('ρόλος').order('όνομα');
   let html=`<div class="page-title">Χρήστες</div><div class="page-sub">Διαχείριση ρόλων και πρόσβασης</div>`;
   html+=`<div class="card"><div class="card-head"><div class="card-head-title">ΧΡΗΣΤΕΣ ΣΥΣΤΗΜΑΤΟΣ</div><button class="btn-add" onclick="openUserModal()">+ Νέος Χρήστης</button></div>`;
-  html+=`<table><thead><tr><th>Όνομα</th><th>Email</th><th>Ρόλος</th><th>Κατάστημα</th><th>Κατάσταση</th></tr></thead><tbody>`;
+  html+=`<table><thead><tr><th>Όνομα</th><th>Email</th><th>Ρόλος</th><th>Κατάστημα</th><th>Κατάσταση</th><th></th></tr></thead><tbody>`;
   (r.data||[]).forEach(u=>{
     const rc={'admin':'bn','kitchen':'bo','store':'bg'}[u['ρόλος']]||'bn';
     html+=`<tr><td><strong>${u['όνομα']}</strong></td><td>${u['email']}</td>
     <td><span class="badge ${rc}">${u['ρόλος'].toUpperCase()}</span></td>
     <td>${u['καταστήματα']?u['καταστήματα']['όνομα']:'-'}</td>
-    <td><span class="badge ${u['ενεργός']?'bg':'br'}">${u['ενεργός']?'Ενεργός':'Ανενεργός'}</span></td></tr>`;
+    <td><span class="badge ${u['ενεργός']?'bg':'br'}">${u['ενεργός']?'Ενεργός':'Ανενεργός'}</span></td>
+    <td><button class="btn-sm btn-edit" onclick="openUserModal('${u['auth_user_id']}','${u['όνομα']}','${u['email']}')" title="Αλλαγή κωδικού">🔑</button></td></tr>`;
   });
   html+=`</tbody></table></div>`;
   m.innerHTML=html;
 }
 
-async function openUserModal(){
+async function openUserModal(authId, existingName, existingEmail){
   if(STORES.length===0){const r=await db.from('καταστήματα').select('*');STORES=r.data||[];}
   document.getElementById('mUserStore').innerHTML=STORES.map(s=>`<option value="${s.id}">${s['όνομα']}</option>`).join('');
+  
+  const isEdit = !!authId;
+  document.getElementById('mUserAuthId').value = authId||'';
+  document.getElementById('mUserTitle').textContent = isEdit ? 'Αλλαγή Κωδικού' : 'Νέος Χρήστης';
+  document.getElementById('mUserNameField').style.display = isEdit ? 'none' : 'block';
+  document.getElementById('mUserEmailField').style.display = isEdit ? 'none' : 'block';
+  document.getElementById('mUserRoleField').style.display = isEdit ? 'none' : 'block';
+  document.getElementById('storeField').style.display = isEdit ? 'none' : 'block';
+  document.getElementById('mUserPassField').querySelector('label').textContent = isEdit ? 'Νέος Κωδικός' : 'Κωδικός';
+  document.getElementById('mUserPassField').querySelector('input').placeholder = isEdit ? 'Νέος κωδικός...' : 'Τουλάχιστον 6 χαρακτήρες';
+  
   document.getElementById('mUserName').value='';
   document.getElementById('mUserEmail').value='';
+  document.getElementById('mUserPass').value='';
   document.getElementById('mUserRole').value='store';
   document.getElementById('mUserMsg').className='modal-msg';
   document.getElementById('mUserSaveBtn').disabled=false;
-  document.getElementById('mUserSaveBtn').textContent='Αποστολή Πρόσκλησης';
-  toggleStoreField();
+  document.getElementById('mUserSaveBtn').textContent='ΑΠΟΘΗΚΕΥΣΗ';
+  if(!isEdit) toggleStoreField();
   document.getElementById('mUser').classList.add('show');
 }
 
@@ -567,33 +582,44 @@ function toggleStoreField(){
   document.getElementById('storeField').style.display=role==='store'?'block':'none';
 }
 
+async function callEdgeFunction(payload){
+  const s=await db.auth.getSession();
+  const token=s.data.session.access_token;
+  const res=await fetch('https://slkgziugmtisawxeycmv.supabase.co/functions/v1/manage-users',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:JSON.stringify(payload)
+  });
+  return res.json();
+}
+
 async function saveUser(){
-  const name=document.getElementById('mUserName').value.trim();
-  const email=document.getElementById('mUserEmail').value.trim();
-  const role=document.getElementById('mUserRole').value;
-  const storeId=role==='store'?parseInt(document.getElementById('mUserStore').value):null;
+  const authId=document.getElementById('mUserAuthId').value;
+  const pass=document.getElementById('mUserPass').value;
   const btn=document.getElementById('mUserSaveBtn');
   const msg=document.getElementById('mUserMsg');
-  if(!name||!email){msg.textContent='Συμπλήρωσε όνομα και email.';msg.className='modal-msg err';return;}
+  
+  if(!pass||pass.length<6){msg.textContent='❌ Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.';msg.className='modal-msg err';return;}
   btn.disabled=true; btn.textContent='...';
 
-  // Στείλε invite email μέσω Supabase
-  const r=await db.auth.signInWithOtp({
-    email,
-    options:{emailRedirectTo:'https://stefanosaxiotis-stack.github.io/stefanos/erp.html'}
-  });
-
-  // Προσθήκη στον πίνακα χρήστες
-  await db.from('χρήστες').upsert({
-    'όνομα':name, 'email':email, 'ρόλος':role,
-    'εταιρία_id':1, 'κατάστημα_id':storeId, 'ενεργός':true
-  },{onConflict:'email'});
-
-  if(r.error){msg.textContent='Σφάλμα: '+r.error.message;msg.className='modal-msg err';btn.disabled=false;btn.textContent='Αποστολή Πρόσκλησης';return;}
-  msg.textContent='✅ Εστάλη email στον '+email+' για είσοδο!';
-  msg.className='modal-msg ok';
-  btn.textContent='✅ Εστάλη!';
-  renderUsers();
+  if(authId){
+    // Αλλαγή κωδικού
+    const r=await callEdgeFunction({action:'update_password', user_id:authId, new_password:pass});
+    if(r.error){msg.textContent='❌ '+r.error;msg.className='modal-msg err';btn.disabled=false;btn.textContent='ΑΠΟΘΗΚΕΥΣΗ';return;}
+    msg.textContent='✅ Ο κωδικός άλλαξε!';msg.className='modal-msg ok';
+  } else {
+    // Δημιουργία νέου χρήστη
+    const name=document.getElementById('mUserName').value.trim();
+    const email=document.getElementById('mUserEmail').value.trim();
+    const role=document.getElementById('mUserRole').value;
+    const storeId=role==='store'?parseInt(document.getElementById('mUserStore').value):null;
+    if(!name||!email){msg.textContent='❌ Συμπλήρωσε όνομα και email.';msg.className='modal-msg err';btn.disabled=false;btn.textContent='ΑΠΟΘΗΚΕΥΣΗ';return;}
+    const r=await callEdgeFunction({action:'create', email, password:pass, name, role, store_id:storeId});
+    if(r.error){msg.textContent='❌ '+r.error;msg.className='modal-msg err';btn.disabled=false;btn.textContent='ΑΠΟΘΗΚΕΥΣΗ';return;}
+    msg.textContent='✅ Ο χρήστης '+email+' δημιουργήθηκε!';msg.className='modal-msg ok';
+  }
+  btn.textContent='✅ Έγινε!';
+  setTimeout(()=>{closeModal('mUser');renderUsers();},1500);
 }
 
 // ═══════════════════════════════════════════════
